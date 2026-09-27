@@ -13,7 +13,7 @@
  */
 import { z } from 'zod';
 import { hashIntent, type Intent } from '@/lib/intent/hash';
-import { USDC_ISSUER, HORIZON_URL } from '@/lib/config';
+import { USDC_ISSUER, HORIZON_URL, NETWORK_PASSPHRASE } from '@/lib/config';
 import { STELLAR_PUBKEY_PATTERN, AMOUNT_7DP_PATTERN } from '@/lib/patterns';
 import { fetchCorridorRates } from '@/lib/stellar/server-rates';
 import {
@@ -157,13 +157,13 @@ export async function buildUnsignedOfframpTx(
   assetIssuer: string,
   quoteId: string
 ): Promise<string> {
-  const { Asset, Networks, TransactionBuilder, Operation, Memo, BASE_FEE, Account } =
+  const { Asset, TransactionBuilder, Operation, Memo, BASE_FEE, Account } =
     await import('@stellar/stellar-sdk');
   const asset = new Asset(assetCode, assetIssuer);
   const account = new Account(senderPublicKey, '0');
   const tx = new TransactionBuilder(account, {
     fee: BASE_FEE,
-    networkPassphrase: Networks.PUBLIC,
+    networkPassphrase: NETWORK_PASSPHRASE,
   })
     .addOperation(Operation.payment({ destination: anchorAccount, asset, amount }))
     .addMemo(Memo.hash(Buffer.from(quoteId, 'hex')))
@@ -318,7 +318,7 @@ export async function executeIntent(input: ExecuteInput): Promise<ExecuteOutput>
   const targets = routingTargetsForCorridor(id);
   if (targets.length === 0) throw noRouteError(id);
 
-  const { Keypair, TransactionBuilder, Networks, Horizon } = await import('@stellar/stellar-sdk');
+  const { Keypair, TransactionBuilder, Horizon } = await import('@stellar/stellar-sdk');
 
   let senderKey: InstanceType<typeof Keypair>;
   try {
@@ -345,7 +345,7 @@ export async function executeIntent(input: ExecuteInput): Promise<ExecuteOutput>
 
   let tx: ReturnType<typeof TransactionBuilder.fromXDR>;
   try {
-    tx = TransactionBuilder.fromXDR(parsed.signedTx, Networks.PUBLIC);
+    tx = TransactionBuilder.fromXDR(parsed.signedTx, NETWORK_PASSPHRASE);
   } catch {
     throw new OfframpToolError('signedTx is not a valid Stellar transaction XDR', 'TX_MISMATCH');
   }
