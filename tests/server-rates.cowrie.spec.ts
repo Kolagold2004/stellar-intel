@@ -26,7 +26,7 @@ vi.mock('@/lib/stellar/sep38', () => ({
   getSep38Price: vi.fn(),
 }));
 vi.mock('@/lib/stellar/sep24', () => ({ getSep24Info: vi.fn() }));
-vi.mock('@/lib/fx/rates', () => ({ getUsdFxRate: vi.fn() }));
+vi.mock('@/lib/fx/rates', () => ({ getUsdFxRate: vi.fn(), getFxRate: vi.fn() }));
 // getSep6Info is NOT mocked — MSW intercepts its fetch call to /info
 
 import { fetchCorridorRates } from '@/lib/stellar/server-rates';
@@ -34,7 +34,7 @@ import { getAnchorsByCorridorId } from '@/lib/stellar/anchors';
 import { resolveAnchor } from '@/lib/stellar/sep1';
 import { assertSep38Capable } from '@/lib/stellar/sep38';
 import { getSep24Info } from '@/lib/stellar/sep24';
-import { getUsdFxRate } from '@/lib/fx/rates';
+import { getUsdFxRate, getFxRate } from '@/lib/fx/rates';
 
 const server = setupServer(...cowrieHandlers);
 
@@ -70,6 +70,7 @@ describe('fetchCorridorRates — Cowrie appears on usdc-ngn via SEP-6 (B009)', (
     });
     vi.mocked(getSep24Info).mockRejectedValue(new Error('no SEP-24'));
     vi.mocked(getUsdFxRate).mockResolvedValue(1550);
+    vi.mocked(getFxRate).mockResolvedValue(1550);
   });
 
   it('returns a rate row for Cowrie on the usdc-ngn corridor', async () => {

@@ -22,7 +22,7 @@ vi.mock('@/lib/stellar/sep38', () => ({
 }));
 vi.mock('@/lib/stellar/sep24', () => ({ getSep24Info: vi.fn() }));
 vi.mock('@/lib/stellar/sep6', () => ({ getSep6Info: vi.fn() }));
-vi.mock('@/lib/fx/rates', () => ({ getUsdFxRate: vi.fn() }));
+vi.mock('@/lib/fx/rates', () => ({ getUsdFxRate: vi.fn(), getFxRate: vi.fn() }));
 
 import { fetchCorridorRates } from '@/lib/stellar/server-rates';
 import { getAnchorsByCorridorId } from '@/lib/stellar/anchors';
@@ -30,7 +30,7 @@ import { resolveAnchor } from '@/lib/stellar/sep1';
 import { assertSep38Capable } from '@/lib/stellar/sep38';
 import { getSep24Info } from '@/lib/stellar/sep24';
 import { getSep6Info } from '@/lib/stellar/sep6';
-import { getUsdFxRate } from '@/lib/fx/rates';
+import { getUsdFxRate, getFxRate } from '@/lib/fx/rates';
 
 const sep6OnlyAnchor: Anchor = {
   id: 'cowrie',
@@ -65,6 +65,7 @@ beforeEach(() => {
     fields: {},
   });
   vi.mocked(getUsdFxRate).mockResolvedValue(1550);
+  vi.mocked(getFxRate).mockResolvedValue(1550);
 });
 
 describe('fetchCorridorRates — SEP-6 Tier-3 fallback', () => {
