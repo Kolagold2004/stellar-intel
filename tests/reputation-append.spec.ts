@@ -204,12 +204,18 @@ describe('append -> reconcile end-to-end (#220 + #221 + #219)', () => {
     await appendPOST(req(signed()));
     expect((await store.query({}))[0]?.deliveredAmount).toBeNull();
 
-    // Stub Horizon: the settlement payment for the outcome's Stellar tx.
+    // Stub Horizon: the settlement payment for the outcome's Stellar tx. `from`
+    // must match the row's signerAccount (#1334) or the reconciler flags
+    // source_mismatch instead of backfilling.
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => ({
         ok: true,
-        json: async () => ({ _embedded: { records: [{ type: 'payment', amount: '149000' }] } }),
+        json: async () => ({
+          _embedded: {
+            records: [{ type: 'payment', amount: '149000', from: sender.publicKey() }],
+          },
+        }),
       }))
     );
 

@@ -109,6 +109,134 @@ describe('reputation reconciler', () => {
     ]);
   });
 
+  it('updates when the delivered payment source matches the signer account (#1334)', async () => {
+    const updateOutcome = vi.fn(async () => {});
+
+    const results = await reconcileReputationOutcomes(
+      [
+        {
+          id: 'row-1',
+          status: 'completed',
+          stellarTransactionId: 'tx-hash',
+          settledAt: '2026-06-02T11:58:00.000Z',
+          quotedAmount: '100',
+          destinationAccount: 'GDEST',
+          signerAccount: 'GSIGNER',
+        },
+      ],
+      updateOutcome,
+      {
+        now,
+        fetchPaymentsForTransaction: vi.fn(async () => [
+          { type: 'payment', amount: '94.2500000', to: 'GDEST', from: 'GSIGNER' },
+        ]),
+      }
+    );
+
+    expect(updateOutcome).toHaveBeenCalledTimes(1);
+    expect(results).toEqual([
+      {
+        rowId: 'row-1',
+        status: 'updated',
+        deliveredAmount: '94.2500000',
+        deliveredRate: '0.94250000',
+      },
+    ]);
+  });
+
+  it('flags source_mismatch and skips the update when the payment source differs from the signer (#1334)', async () => {
+    const updateOutcome = vi.fn(async () => {});
+    const onSourceMismatch = vi.fn(async () => {});
+
+    const results = await reconcileReputationOutcomes(
+      [
+        {
+          id: 'row-1',
+          status: 'completed',
+          stellarTransactionId: 'tx-hash',
+          settledAt: '2026-06-02T11:58:00.000Z',
+          quotedAmount: '100',
+          destinationAccount: 'GDEST',
+          signerAccount: 'GSIGNER',
+        },
+      ],
+      updateOutcome,
+      {
+        now,
+        fetchPaymentsForTransaction: vi.fn(async () => [
+          { type: 'payment', amount: '94.2500000', to: 'GDEST', from: 'GSOMEONE_ELSE' },
+        ]),
+        onSourceMismatch,
+      }
+    );
+
+    expect(updateOutcome).not.toHaveBeenCalled();
+    expect(onSourceMismatch).toHaveBeenCalledTimes(1);
+    expect(onSourceMismatch).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'row-1', signerAccount: 'GSIGNER' })
+    );
+    expect(results).toEqual([{ rowId: 'row-1', status: 'source_mismatch' }]);
+  });
+
+  it('honours source_account when from is absent (#1334)', async () => {
+    const updateOutcome = vi.fn(async () => {});
+
+    const results = await reconcileReputationOutcomes(
+      [
+        {
+          id: 'row-1',
+          status: 'completed',
+          stellarTransactionId: 'tx-hash',
+          settledAt: '2026-06-02T11:58:00.000Z',
+          quotedAmount: '100',
+          destinationAccount: 'GDEST',
+          signerAccount: 'GSIGNER',
+        },
+      ],
+      updateOutcome,
+      {
+        now,
+        fetchPaymentsForTransaction: vi.fn(async () => [
+          { type: 'payment', amount: '94.2500000', to: 'GDEST', source_account: 'GSIGNER' },
+        ]),
+      }
+    );
+
+    expect(updateOutcome).toHaveBeenCalledTimes(1);
+    expect(results[0]?.status).toBe('updated');
+  });
+
+  it('keeps today\'s behaviour when signerAccount is null (#1334)', async () => {
+    const updateOutcome = vi.fn(async () => {});
+    const onSourceMismatch = vi.fn(async () => {});
+
+    const results = await reconcileReputationOutcomes(
+      [
+        {
+          id: 'row-1',
+          status: 'completed',
+          stellarTransactionId: 'tx-hash',
+          settledAt: '2026-06-02T11:58:00.000Z',
+          quotedAmount: '100',
+          destinationAccount: 'GDEST',
+          signerAccount: null,
+        },
+      ],
+      updateOutcome,
+      {
+        now,
+        fetchPaymentsForTransaction: vi.fn(async () => [
+          { type: 'payment', amount: '94.2500000', to: 'GDEST', from: 'GSOMEONE_ELSE' },
+        ]),
+        onSourceMismatch,
+      }
+    );
+
+    expect(onSourceMismatch).not.toHaveBeenCalled();
+    expect(updateOutcome).toHaveBeenCalledTimes(1);
+    expect(results[0]?.status).toBe('updated');
+  });
+
   it('fetches payments from Horizon by stellar transaction id', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
       new Response(
