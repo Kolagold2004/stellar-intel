@@ -121,6 +121,52 @@ export const ANCHORS: Anchor[] = [
     assetIssuer: USDC_ISSUER,
     seps: ['sep10', 'sep24', 'sep31', 'sep38'],
   },
+  // kbtrading.org (KB Trading, BVI) issues CLPX, the Chilean peso token. Verified
+  // 2026-09-29 against its own endpoints.
+  //
+  // The `seps` list here is honest about what the anchor advertises: it really
+  // does run SEP-6, SEP-24, SEP-10 and SEP-31, so it is transfer-capable by the
+  // mechanical test and isSep31Only() is false for it. Those rails still cannot
+  // move the clpx-clp corridor, which is why `corridors` is empty and the lane is
+  // recorded in sep31Corridors instead:
+  //
+  //   GET /sep24/info  deposit.CLPX  enabled, min 14000, max 3500000, no fee
+  //                   deposit.BTCLN enabled, min 1000,  max 507059, 1%
+  //                   withdraw.CLPX { enabled: false }  <- names it, then refuses it
+  //                   withdraw.BTCLN enabled, min 10000, max 507059 (lightning)
+  //   GET /sep6/info   the identical shape (withdraw.CLPX disabled; the BTCLN
+  //                   withdraw carries a lightning/BOLT11 `type`)
+  //   GET /sep31/info  receive.CLPX enabled, min 14000, max 8500000, transfer
+  //                   type bank_account
+  //
+  // So CLPX goes in over SEP-6/SEP-24, but the only way back out to fiat is
+  // SEP-31, and SEP-31 is never routed: receiving on it needs a bilateral
+  // sending-anchor agreement. A CLPX withdrawal on either programmatic rail is
+  // what would make this lane routable, and the anchor currently advertises it as
+  // disabled — re-read the withdraw map before treating this lane as anything
+  // other than tracked.
+  //
+  // TOML (https://kbtrading.org/.well-known/stellar.toml, also served for
+  // clpx.finance): TRANSFER_SERVER = https://kbtrading.org/sep6,
+  // TRANSFER_SERVER_SEP0024 = https://kbtrading.org/sep24, DIRECT_PAYMENT_SERVER =
+  // https://kbtrading.org/sep31, WEB_AUTH_ENDPOINT = https://kbtrading.org/auth
+  // (responds 400 without a challenge token), KYC_SERVER =
+  // https://kbtrading.org/kyc. The Anchor `seps` union has no sep12 member, so
+  // SEP-12 is left out rather than misfiled under another protocol.
+  // CURRENCIES: CLPX issuer GDYSPBVZHPQTYMGSYNOHRZQNLB3ZWFVQ2F7EP7YBOLRGD42XIC3QUX5G,
+  // anchor_asset_type fiat, anchor_asset CLP, status live, display_decimals 2.
+  // XCHF, IDRT, TRYB, XSGD and KRW are listed there too, but every one of them
+  // is status=test, so they are deliberately not registered here.
+  {
+    id: 'clpx',
+    name: 'KB Trading (CLPX)',
+    homeDomain: 'kbtrading.org',
+    corridors: [],
+    sep31Corridors: ['clpx-clp'],
+    assetCode: 'CLPX',
+    assetIssuer: 'GDYSPBVZHPQTYMGSYNOHRZQNLB3ZWFVQ2F7EP7YBOLRGD42XIC3QUX5G',
+    seps: ['sep6', 'sep10', 'sep24', 'sep31'],
+  },
 ];
 
 export const KNOWN_ANCHORS = ANCHORS;
@@ -137,6 +183,8 @@ const BRL_ISSUER = 'GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP';
 const ARS_ISSUER = 'GCYE7C77EB5AWAA25R5XMWNI2EDOKTTFTTPZKM2SR5DI4B4WFD52DARS';
 /** Issuer of anclap's PEN token (see the anclap anchor entry above). */
 const PEN_ISSUER = 'GA4TDPNUCZPTOHB3TKUYMDCRVATXKEADH7ZEYEBWJKQKE2UBFCYNBPEN';
+/** Issuer of KB Trading's CLPX token (see the clpx anchor entry above). */
+const CLPX_ISSUER = 'GDYSPBVZHPQTYMGSYNOHRZQNLB3ZWFVQ2F7EP7YBOLRGD42XIC3QUX5G';
 
 /**
  * Corridor ids follow the convention `<on-chain asset code>-<payout fiat code>`,
@@ -267,6 +315,24 @@ export const CORRIDORS: Corridor[] = [
     to: 'XOF',
     countryCode: 'SN',
     countryName: 'Senegal',
+  },
+  // ─── SEP-31-only corridor ───────────────────────────────────────────────────
+  // clpx-clp is served by kbtrading only as a SEP-31 receiving anchor (see the
+  // clpx entry in ANCHORS above). It lives in CORRIDORS so the lane resolves for
+  // the record, the onboarding survey and health probes, but it can never be
+  // routed: the anchor's SEP-6/SEP-24 rails take CLPX in but do not pay CLPX out
+  // (withdraw.CLPX is advertised disabled), and SEP-31 needs a bilateral
+  // sending-anchor agreement. Because the lane is recorded in `sep31Corridors`
+  // and not `corridors`, it stays out of SERVED_CORRIDOR_IDS and therefore out of
+  // VISIBLE_CORRIDORS, so no selector or rate path can pick it up.
+  {
+    id: 'clpx-clp',
+    from: 'CLPX',
+    fromIssuer: CLPX_ISSUER,
+    fromPeg: 'CLP',
+    to: 'CLP',
+    countryCode: 'CL',
+    countryName: 'Chile',
   },
 ];
 
