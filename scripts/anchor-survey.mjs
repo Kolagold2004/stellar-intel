@@ -29,7 +29,10 @@
 //   - "Transfer-capable" != "fiat off-ramp we care about": some hits are crypto
 //     anchors or DEX gateways with no fiat corridor.
 
+import { pathToFileURL } from 'node:url';
+
 import { fetchDirectoryCandidates } from './lib/directory.mjs';
+import { isImpersonation } from './lib/impersonation.mjs';
 
 const DIRECTORY_URL = 'https://api.stellar.expert/explorer/public/directory?tag[]=anchor&limit=200';
 const PER_ANCHOR_TIMEOUT_MS = 12_000;
@@ -125,8 +128,41 @@ async function attempt(url) {
   }
 }
 
+const TOML_ENDPOINT_KEYS = {
+  sep6: 'TRANSFER_SERVER',
+  sep24: 'TRANSFER_SERVER_SEP0024',
+  sep31: 'DIRECT_PAYMENT_SERVER',
+  sep38: 'ANCHOR_QUOTE_SERVER',
+  sep10: 'WEB_AUTH_ENDPOINT',
+  sep12: 'KYC_SERVER',
+};
+
+/**
+ * Pull SEP endpoint URLs out of a raw stellar.toml without a full TOML parse.
+ * Line-anchored, quoted values only; only `https://` URLs are returned,
+ * everything else is null (plain http, relative paths, missing keys).
+ *
+ * @param {string} toml
+ * @returns {{ sep6: string | null, sep24: string | null, sep31: string | null,
+ *   sep38: string | null, sep10: string | null, sep12: string | null }}
+ */
+export function parseTomlEndpoints(toml) {
+  const out = { sep6: null, sep24: null, sep31: null, sep38: null, sep10: null, sep12: null };
+  if (typeof toml !== 'string') return out;
+  for (const [field, key] of Object.entries(TOML_ENDPOINT_KEYS)) {
+    const match = new RegExp(`^\\s*${key}\\s*=\\s*["']([^"']+)["']`, 'im').exec(toml);
+    const value = match?.[1]?.trim() ?? null;
+    out[field] = value && value.startsWith('https://') ? value : null;
+  }
+  return out;
+}
+
 /**
  * Fetch + classify a single domain's stellar.toml. Retries once.
+ *
+ * A reachable toml whose rails point at another institution's hosts (see
+ * scripts/lib/impersonation.mjs) is flagged `excluded: 'impersonation'` and
+ * never counts as transfer-capable.
  *
  * NOTE: Node's `fetch` (undici) verifies TLS and uses the runtime CA store, so a
  * domain with an expired/mismatched cert — or a runtime missing CA certs — fails
@@ -135,7 +171,7 @@ async function attempt(url) {
  * authoritative reachable/transfer-capable split is the documented curl crawl; a
  * strict cert-verifying client legitimately sees fewer.
  */
-async function classify(domain) {
+export async function classify(domain) {
   const url = `https://${domain}/.well-known/stellar.toml`;
   let last;
   for (let i = 0; i < 2; i++) {
@@ -143,7 +179,7 @@ async function classify(domain) {
       const { status, toml } = await attempt(url);
       if (toml == null) return { domain, reachable: false, reason: `HTTP ${status}` };
       const has = (key) => new RegExp(`^\\s*${key}\\s*=`, 'im').test(toml);
-      return {
+      const result = {
         domain,
         reachable: true,
         sep6: has('TRANSFER_SERVER'),
@@ -151,6 +187,10 @@ async function classify(domain) {
         sep38: has('ANCHOR_QUOTE_SERVER'),
         sep31: has('DIRECT_PAYMENT_SERVER'),
       };
+      if (isImpersonation(domain, Object.values(parseTomlEndpoints(toml)))) {
+        result.excluded = 'impersonation';
+      }
+      return result;
     } catch (err) {
       last = `${err?.name ?? 'Error'}${err?.cause?.code ? `:${err.cause.code}` : ''}`;
     }
@@ -183,7 +223,7 @@ async function main() {
   const both = live.filter((r) => r.sep6 && r.sep24);
   const only6 = live.filter((r) => r.sep6 && !r.sep24);
   const only24 = live.filter((r) => r.sep24 && !r.sep6);
-  const transferCapable = live.filter((r) => r.sep6 || r.sep24);
+  const transferCapable = live.filter((r) => (r.sep6 || r.sep24) && r.excluded !== 'impersonation');
   const issuerOnly = live.filter((r) => !r.sep6 && !r.sep24);
 
   if (asRecheck) {
@@ -242,7 +282,12 @@ async function main() {
   console.log(`\nTransfer-capable: ${transferCapable.map((r) => r.domain).join(', ')}`);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+// Guard the run so the module stays importable for tests (classify et al.)
+// without kicking off a full survey crawl on import.
+const invokedDirectly = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (invokedDirectly) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
