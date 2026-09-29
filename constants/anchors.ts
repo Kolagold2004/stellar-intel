@@ -121,6 +121,26 @@ export const ANCHORS: Anchor[] = [
     assetIssuer: USDC_ISSUER,
     seps: ['sep10', 'sep24', 'sep31', 'sep38'],
   },
+  // finclusive.com: US licensed money transmitter (North Carolina) advertising
+  // live SEP-6, SEP-24 and SEP-31 rails for USDC with zero fees. Verified
+  // 2026-09-23. SEP-6 and SEP-24 both live at
+  // https://api.finclusive.com/stellar/transfer, SEP-31 at
+  // https://api.finclusive.com/stellar/directpayment; /info lists
+  // deposit/withdraw asset pairs [XLM, USDC] enabled on both rails; SEP-10
+  // authentication is alive. The TOML USDC issuer is the canonical one, with
+  // anchor_asset USD — but /info shows no withdraw types, so the fiat leg is
+  // only evidenced by the SDF directory (USD) and the corridor stays flagged
+  // unverified. Confidence: low.
+  {
+    id: 'finclusive',
+    name: 'FinClusive',
+    homeDomain: 'finclusive.com',
+    corridors: ['usdc-usd'],
+    unverifiedCorridors: ['usdc-usd'],
+    assetCode: 'USDC',
+    assetIssuer: USDC_ISSUER,
+    seps: ['sep6', 'sep10', 'sep24', 'sep31'],
+  },
 ];
 
 export const KNOWN_ANCHORS = ANCHORS;
@@ -217,6 +237,15 @@ export const CORRIDORS: Corridor[] = [
     countryName: 'Germany',
   },
   {
+    id: 'usdc-usd',
+    from: 'USDC',
+    fromIssuer: USDC_ISSUER,
+    fromPeg: 'USD',
+    to: 'USD',
+    countryCode: 'US',
+    countryName: 'United States',
+  },
+  {
     id: 'brl-brl',
     from: 'BRL',
     fromIssuer: BRL_ISSUER,
@@ -303,6 +332,7 @@ export const TYPICAL_AMOUNTS: Record<string, number[]> = {
   'usdc-ars': [50, 150, 300],
   'usdc-pen': [50, 150, 300],
   'usdc-eur': [100, 300, 500],
+  'usdc-usd': [100, 250, 500],
   'brl-brl': [100, 250, 500],
   'ars-ars': [50000, 100000, 250000],
   'pen-pen': [100, 300, 500],
