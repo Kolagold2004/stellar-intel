@@ -25,6 +25,7 @@ import { AnchorLogo } from '@/components/ui/AnchorLogo';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { Sparkline } from '@/components/ui/Sparkline';
 import { useRateHistory, describeRateTrend } from '@/hooks/useRateHistory';
+import { getCorridorById } from '@/lib/stellar/anchors';
 import { SortToggle } from './SortToggle';
 import { RateRowDetail } from './RateRowDetail';
 
@@ -304,6 +305,7 @@ export function RateTable({
               const isUnavailable = rate.source === 'unavailable' || isExpired;
               const isBest = rate.anchorId === rates?.bestRateId && !isUnavailable;
               const currency = rate.corridorId.split('-')[1]?.toUpperCase() ?? '';
+              const sourceAsset = getCorridorById(rate.corridorId).from;
               const isExpanded = expandedAnchorId === rate.anchorId;
 
               return (
@@ -355,7 +357,7 @@ export function RateTable({
                             )}
                             {rate.totalReceived !== null && (
                               <CopyButton
-                                text={`Best USDC→${currency} rate: ${formatCurrency(rate.totalReceived, currency)} via ${rate.anchorName}. Checked ${new Date().toLocaleString()} on ${SITE_URL}/offramp?corridor=${rate.corridorId}`}
+                                text={`Best ${sourceAsset}→${currency} rate: ${formatCurrency(rate.totalReceived, currency)} via ${rate.anchorName}. Checked ${new Date().toLocaleString()} on ${SITE_URL}/offramp?corridor=${rate.corridorId}`}
                               />
                             )}
                           </>
@@ -390,7 +392,7 @@ export function RateTable({
                     </td>
                     <td className="px-4 py-3 text-right text-secondary-text">
                       {rate.exchangeRate !== null && rate.exchangeRate > 0
-                        ? formatRate(rate.exchangeRate, 'USDC', currency)
+                        ? formatRate(rate.exchangeRate, sourceAsset, currency)
                         : '—'}
                       {(() => {
                         const series = rateHistory[`${rate.corridorId}:${rate.anchorId}`];

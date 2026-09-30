@@ -9,6 +9,7 @@ const RATES = [
     fee: 1,
     totalReceived: 158000,
     source: 'sep38',
+    corridorId: 'usdc-ngn',
   },
   {
     anchorId: 'b',
@@ -28,9 +29,11 @@ const RATES = [
   },
 ];
 
+const BRL_RATES = RATES.map((rate) => ({ ...rate, corridorId: 'brl-brl' }));
+
 vi.mock('@/hooks/useAnchorRates', () => ({
-  useAnchorRates: () => ({
-    rates: { rates: RATES, bestRateId: 'a' },
+  useAnchorRates: (corridorId: string) => ({
+    rates: { rates: corridorId === 'brl-brl' ? BRL_RATES : RATES, bestRateId: 'a' },
     isLoading: false,
     error: undefined,
   }),
@@ -63,6 +66,12 @@ describe('Leaderboard', () => {
     expect(screen.queryByText('Anchor C')).not.toBeInTheDocument();
     expect(screen.getByText('#1')).toBeInTheDocument();
     expect(screen.getByText('#2')).toBeInTheDocument();
+  });
+
+  it('uses the corridor source asset in rate labels', () => {
+    render(<Leaderboard corridor={{ ...CORRIDOR, id: 'brl-brl', from: 'BRL', to: 'BRL' }} />);
+    expect(screen.getByText('Rate (per BRL)')).toBeInTheDocument();
+    expect(screen.getByText('1 BRL = 1,600 BRL')).toBeInTheDocument();
   });
 });
 

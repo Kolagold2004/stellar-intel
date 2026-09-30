@@ -1,5 +1,6 @@
 import type { AnchorRate } from '@/types';
 import { formatCurrency, formatRate } from '@/lib/utils';
+import { getCorridorById } from '@/lib/stellar/anchors';
 
 const FEE_TYPE_LABELS: Record<AnchorRate['feeType'], string> = {
   flat: 'Flat fee',
@@ -28,6 +29,8 @@ interface RateRowDetailProps {
 }
 
 export function RateRowDetail({ rate, currency, colSpan }: RateRowDetailProps) {
+  const sourceAsset = getCorridorById(rate.corridorId).from;
+
   return (
     <tr className="border-t border-border bg-bg-sunken/50 /30">
       <td colSpan={colSpan} className="px-4 py-3">
@@ -43,7 +46,7 @@ export function RateRowDetail({ rate, currency, colSpan }: RateRowDetailProps) {
             <dt className="text-fg-muted">Rate</dt>
             <dd className="font-medium text-primary-text">
               {rate.exchangeRate !== null && rate.exchangeRate > 0
-                ? formatRate(rate.exchangeRate, 'USDC', currency)
+                ? formatRate(rate.exchangeRate, sourceAsset, currency)
                 : '—'}
             </dd>
           </div>

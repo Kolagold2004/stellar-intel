@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import type { Corridor } from '@/types';
 import { AnchorLogo } from '@/components/ui/AnchorLogo';
 import { QuotePill } from '@/components/ui/QuotePill';
+import { getCorridorById } from '@/lib/stellar/anchors';
 
 interface LeaderboardProps {
   corridor: Corridor;
@@ -16,6 +17,7 @@ interface LeaderboardProps {
 export function Leaderboard({ corridor, limit }: LeaderboardProps) {
   const { rates, isLoading, error } = useAnchorRates(corridor.id, '100');
   const currency = corridor.to.toUpperCase();
+  const sourceAsset = getCorridorById(corridor.id).from;
 
   if (isLoading && !rates) {
     return (
@@ -60,7 +62,7 @@ export function Leaderboard({ corridor, limit }: LeaderboardProps) {
               </th>
             )}
             <th className="px-4 py-3 text-right font-medium text-secondary-text">
-              Rate (per USDC)
+              Rate (per {sourceAsset})
             </th>
             <th className="px-4 py-3 text-right font-medium text-secondary-text">Fee</th>
             <th className="px-4 py-3 text-right font-medium text-secondary-text">You Receive</th>
@@ -115,7 +117,7 @@ export function Leaderboard({ corridor, limit }: LeaderboardProps) {
                 )}
                 <td className="px-4 py-3 text-right text-secondary-text">
                   {rate.exchangeRate !== null && rate.exchangeRate > 0
-                    ? formatRate(rate.exchangeRate, 'USDC', currency)
+                    ? formatRate(rate.exchangeRate, sourceAsset, currency)
                     : '—'}
                 </td>
                 <td className="px-4 py-3 text-right text-secondary-text">

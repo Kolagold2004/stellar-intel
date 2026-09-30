@@ -8,10 +8,14 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-const makeRate = (anchorId: string, totalReceived: number): AnchorRate => ({
+const makeRate = (
+  anchorId: string,
+  totalReceived: number,
+  corridorId = 'usdc-ngn'
+): AnchorRate => ({
   anchorId,
   anchorName: anchorId === 'cowrie' ? 'Cowrie' : 'Flutterwave',
-  corridorId: 'usdc-ngn',
+  corridorId,
   fee: 2,
   feeType: 'flat',
   exchangeRate: 1580,
@@ -65,6 +69,19 @@ describe('RateTable', () => {
       <RateTable rates={mockRates} isLoading={false} error={undefined} onSelectAnchor={vi.fn()} />
     );
     expect(screen.getAllByRole('button', { name: 'Copy' })).toHaveLength(1);
+  });
+
+  it('uses the corridor source asset in rate labels', () => {
+    const brlRates: RateComparison = {
+      ...mockRates,
+      corridorId: 'brl-brl',
+      rates: [makeRate('cowrie', 1548, 'brl-brl')],
+    };
+    render(
+      <RateTable rates={brlRates} isLoading={false} error={undefined} onSelectAnchor={vi.fn()} />
+    );
+
+    expect(screen.getByText('1 BRL = 1,580 BRL')).toBeInTheDocument();
   });
 
   it('shows a savings callout on the best row when there are 2+ comparable rates', () => {

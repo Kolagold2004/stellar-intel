@@ -8,6 +8,7 @@ interface TransactionReceiptProps {
   amountOutAsset: string | undefined;
   amountFee: string | undefined;
   currencyCode: string;
+  assetCode?: string;
   stellarTransactionId: string | undefined;
   anchorHomeDomain: string | undefined;
 }
@@ -31,10 +32,11 @@ export function TransactionReceipt({
   amountOutAsset,
   amountFee,
   currencyCode,
+  assetCode = 'USDC',
   stellarTransactionId,
   anchorHomeDomain,
 }: TransactionReceiptProps) {
-  const sentAsset = parseAssetCode(amountInAsset) || 'USDC';
+  const sentAsset = parseAssetCode(amountInAsset) || assetCode;
   const receivedAsset = parseAssetCode(amountOutAsset) || currencyCode;
   const rate =
     amountIn && amountOut && Number(amountIn) > 0

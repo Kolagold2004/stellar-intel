@@ -30,6 +30,7 @@ import { VISIBLE_CORRIDORS } from '@/constants/anchors';
 import { signIntent } from '@/lib/intent/sign';
 import type { Intent } from '@/lib/intent/hash';
 import type { AnchorRate } from '@/types';
+import { getCorridorById } from '@/lib/stellar/anchors';
 
 // Not needed until the user picks a rate to execute — split into its own
 // chunk so it doesn't pad the initial /offramp bundle.
@@ -337,6 +338,7 @@ function OfframpContent() {
           amountOut={withdrawStatus.amountOut}
           amountOutAsset={withdrawStatus.amountOutAsset}
           amountFee={withdrawStatus.amountFee}
+          assetCode={getCorridorById(corridorId).from}
           currencyCode={corridorId.split('-')[1]?.toUpperCase() ?? 'USD'}
           stellarTransactionId={withdrawStatus.stellarTransactionId}
           externalTransactionId={withdrawStatus.externalTransactionId}

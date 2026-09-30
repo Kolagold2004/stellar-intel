@@ -27,6 +27,8 @@ interface StatusTrackerProps {
   amountFee: string | undefined;
   /** ISO 4217 currency code for the destination corridor (e.g. "NGN", "KES"). */
   currencyCode: string;
+  /** Source asset code used when SEP-24 omits an asset identifier. */
+  assetCode?: string;
   stellarTransactionId: string | undefined;
   externalTransactionId: string | undefined;
   refunds?: Sep24Transaction['refunds'];
@@ -100,6 +102,7 @@ export function StatusTracker({
   amountOutAsset,
   amountFee,
   currencyCode,
+  assetCode = 'USDC',
   stellarTransactionId,
   externalTransactionId,
   refunds,
@@ -257,7 +260,7 @@ export function StatusTracker({
             <div className="flex justify-between">
               <dt className="text-fg-muted">Sent</dt>
               <dd className="font-medium text-primary-text">
-                {amountIn} {parseAsset(amountInAsset) || 'USDC'}
+                {amountIn} {parseAsset(amountInAsset) || assetCode}
               </dd>
             </div>
           )}
@@ -265,7 +268,7 @@ export function StatusTracker({
             <div className="flex justify-between">
               <dt className="text-fg-muted">Fee</dt>
               <dd className="font-medium text-secondary-text">
-                {amountFee} {parseAsset(amountInAsset) || 'USDC'}
+                {amountFee} {parseAsset(amountInAsset) || assetCode}
               </dd>
             </div>
           )}
@@ -288,7 +291,7 @@ export function StatusTracker({
               <div className="flex justify-between">
                 <dt className="text-status-unknown/80 /80">Amount Refunded</dt>
                 <dd className="font-medium text-status-unknown dark:text-status-unknown">
-                  {refunds.amount_refunded} {parseAsset(amountInAsset) || 'USDC'}
+                  {refunds.amount_refunded} {parseAsset(amountInAsset) || assetCode}
                 </dd>
               </div>
             )}
@@ -296,7 +299,7 @@ export function StatusTracker({
               <div className="flex justify-between">
                 <dt className="text-status-unknown/80 /80">Refund Fee</dt>
                 <dd className="font-medium text-status-unknown dark:text-status-unknown">
-                  {refunds.amount_fee} {parseAsset(amountInAsset) || 'USDC'}
+                  {refunds.amount_fee} {parseAsset(amountInAsset) || assetCode}
                 </dd>
               </div>
             )}
@@ -381,7 +384,7 @@ export function StatusTracker({
             <button
               onClick={() =>
                 share({
-                  text: `I just off-ramped ${amountIn} USDC → ${currencyCode} via Stellar Intel.`,
+                text: `I just off-ramped ${amountIn} ${assetCode} → ${currencyCode} via Stellar Intel.`,
                   url: `${STELLAR_EXPERT_URL}/tx/${stellarTransactionId}`,
                 })
               }
@@ -408,6 +411,7 @@ export function StatusTracker({
           amountOutAsset={amountOutAsset}
           amountFee={amountFee}
           currencyCode={currencyCode}
+          assetCode={assetCode}
           stellarTransactionId={stellarTransactionId}
           anchorHomeDomain={anchorHomeDomain}
         />

@@ -90,6 +90,18 @@ describe('StatusTracker', () => {
     expect(screen.getByText('You receive')).toBeInTheDocument();
   });
 
+  it('uses the fallback corridor asset when the status omits asset metadata', () => {
+    render(
+      <StatusTracker
+        {...BASE_PROPS}
+        status="pending_external"
+        amountIn="100"
+        assetCode="BRL"
+      />
+    );
+    expect(screen.getByText('100 BRL')).toBeInTheDocument();
+  });
+
   it('shows the error message when error is provided', () => {
     render(<StatusTracker {...BASE_PROPS} error="Status poll failed: HTTP 401" />);
     expect(screen.getByText('Status poll failed: HTTP 401')).toBeInTheDocument();
