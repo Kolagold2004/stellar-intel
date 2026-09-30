@@ -16,6 +16,7 @@
 import moneygram from './moneygram.json';
 import cowrie from './cowrie.json';
 import anclap from './anclap.json';
+import latamex from './latamex.json';
 import ngnc from './ngnc.json';
 import ntokens from './ntokens.json';
 import zeam from './zeam.json';
@@ -48,6 +49,7 @@ export const ONRAMP_DEPOSIT_CAPTURES: Record<string, OnrampDepositCapture> = {
   moneygram,
   cowrie,
   anclap,
+  latamex,
   ngnc,
   ntokens,
   zeam,

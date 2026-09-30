@@ -40,6 +40,8 @@ const SNAPSHOT_PATH = resolve(__dirname, 'anchor-survey.snapshot.json');
 const ALLOWLIST = {
   moneygram:
     'Directory lists the issuer-only domain (mgusd.moneygram.com); live SEP-24 runs at the service domain stellar.moneygram.com, which the survey does not crawl.',
+  latamex:
+    'Not in the stellar.expert anchor tag the committed snapshot was built from; verified transfer-capable 2026-09-23. Remove once the multi-source survey snapshot includes it.',
 };
 
 /** Extract the `[...]` literal assigned to `export const ANCHORS`. */
