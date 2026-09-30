@@ -19,6 +19,8 @@
 //   node scripts/anchor-survey.mjs --json     # machine-readable JSON
 //   node scripts/anchor-survey.mjs --json > anchors.json
 //   node scripts/anchor-survey.mjs --recheck  # Markdown tables for docs/ANCHOR_FLEET_RECHECK.md
+//   node scripts/anchor-survey.mjs --concurrency 8   # parallel lookups (default 12, clamped 1-32)
+//   ANCHOR_SURVEY_CONCURRENCY=8 node scripts/anchor-survey.mjs   # same, via env (flag wins)
 //
 // Notes / caveats (see also docs + maintainer.md):
 //   - The directory is NOT comprehensive (Stellar is permissionless). It also
@@ -29,14 +31,49 @@
 //   - "Transfer-capable" != "fiat off-ramp we care about": some hits are crypto
 //     anchors or DEX gateways with no fiat corridor.
 
+import { pathToFileURL } from 'node:url';
 import { fetchDirectoryCandidates } from './lib/directory.mjs';
 
 const DIRECTORY_URL = 'https://api.stellar.expert/explorer/public/directory?tag[]=anchor&limit=200';
 const PER_ANCHOR_TIMEOUT_MS = 12_000;
-const CONCURRENCY = 24;
+// The system resolver starts failing above ~12 concurrent lookups (2026-09-23
+// census), which shows up as false "DNS does not resolve" rows.
+const DEFAULT_CONCURRENCY = 12;
+const MIN_CONCURRENCY = 1;
+const MAX_CONCURRENCY = 32;
+// Wait before the single retry when DNS itself failed, so a resolver hiccup can clear.
+const DNS_RETRY_DELAY_MS = 1000;
+const DNS_RETRY_CODES = new Set(['ENOTFOUND', 'EAI_AGAIN']);
 
-const asJson = process.argv.includes('--json');
-const asRecheck = process.argv.includes('--recheck');
+/**
+ * Resolve the lookup concurrency: `--concurrency N` (or `--concurrency=N`),
+ * else `ANCHOR_SURVEY_CONCURRENCY`, else 12; unparseable values fall through to
+ * the next source; the result is clamped to 1-32.
+ *
+ * @param {string[]} argv
+ * @param {Record<string, string | undefined>} env
+ */
+export function parseConcurrency(argv = [], env = {}) {
+  const parse = (raw) => {
+    if (raw == null || String(raw).trim() === '') return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? Math.trunc(n) : null;
+  };
+
+  let fromFlag = null;
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === '--concurrency') {
+      fromFlag = parse(argv[i + 1]);
+    } else if (argv[i].startsWith('--concurrency=')) {
+      fromFlag = parse(argv[i].slice('--concurrency='.length));
+    }
+  }
+
+  const value = fromFlag ?? parse(env.ANCHOR_SURVEY_CONCURRENCY) ?? DEFAULT_CONCURRENCY;
+  return Math.min(MAX_CONCURRENCY, Math.max(MIN_CONCURRENCY, value));
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Notes carried into the recheck ledger for domains that map to a known anchor
 // or are otherwise worth a second look. Keyed by directory domain.
@@ -51,7 +88,7 @@ const RECHECK_NOTES = {
 };
 
 // Human-readable symptom for an "unconfirmed" domain's failure reason.
-function symptom(reason) {
+export function symptom(reason) {
   return (
     {
       'HTTP 400': 'HTTP 400 (bad request)',
@@ -72,7 +109,7 @@ function symptom(reason) {
  * ledger. "Unreachable" is the connection-timeout set (no TLS handshake);
  * everything else answered in some form but served no usable toml.
  */
-function renderRecheck(dead, date) {
+export function renderRecheck(dead, date) {
   const unreachable = dead
     .filter((d) => d.reason === 'TypeError:UND_ERR_CONNECT_TIMEOUT')
     .map((d) => d.domain)
@@ -135,7 +172,7 @@ async function attempt(url) {
  * authoritative reachable/transfer-capable split is the documented curl crawl; a
  * strict cert-verifying client legitimately sees fewer.
  */
-async function classify(domain) {
+export async function classify(domain) {
   const url = `https://${domain}/.well-known/stellar.toml`;
   let last;
   for (let i = 0; i < 2; i++) {
@@ -153,13 +190,14 @@ async function classify(domain) {
       };
     } catch (err) {
       last = `${err?.name ?? 'Error'}${err?.cause?.code ? `:${err.cause.code}` : ''}`;
+      if (i === 0 && DNS_RETRY_CODES.has(err?.cause?.code)) await sleep(DNS_RETRY_DELAY_MS);
     }
   }
   return { domain, reachable: false, reason: last };
 }
 
 /** Map over items with a fixed concurrency limit. */
-async function mapLimit(items, limit, fn) {
+export async function mapLimit(items, limit, fn) {
   const out = new Array(items.length);
   let i = 0;
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
@@ -173,8 +211,11 @@ async function mapLimit(items, limit, fn) {
 }
 
 async function main() {
+  const asJson = process.argv.includes('--json');
+  const asRecheck = process.argv.includes('--recheck');
+  const concurrency = parseConcurrency(process.argv.slice(2), process.env);
   const domains = await fetchAnchorDomains();
-  const results = await mapLimit(domains, CONCURRENCY, classify);
+  const results = await mapLimit(domains, concurrency, classify);
 
   const live = results.filter((r) => r.reachable);
   const dead = results.filter((r) => !r.reachable);
@@ -242,7 +283,10 @@ async function main() {
   console.log(`\nTransfer-capable: ${transferCapable.map((r) => r.domain).join(', ')}`);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+const invokedDirectly = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (invokedDirectly) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
