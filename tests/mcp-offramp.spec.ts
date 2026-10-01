@@ -32,7 +32,7 @@ vi.mock('@stellar/stellar-sdk', async (importOriginal) => {
 // and deterministic, while still exercising the real plumbing between them.
 const LIVE_RATES: Record<string, { anchorId: string; totalReceived: (amount: number) => number }> =
   {
-    'usdc-ngn': { anchorId: 'cowrie', totalReceived: (amount) => (amount - 2) * 1600 },
+    'ngnt-ngn': { anchorId: 'cowrie', totalReceived: (amount) => (amount - 2) * 1600 },
     'usdc-kes': { anchorId: 'moneygram', totalReceived: (amount) => (amount - 1.5) * 129 },
   };
 
@@ -76,7 +76,7 @@ vi.mock('@/lib/stellar/server-rates', () => ({
 
 // Routing resolves each corridor against the registry filtered to anchors with
 // a verified account in ANCHOR_PAYMENT_ACCOUNTS — there is no built-in table.
-// Only cowrie is configured by default, so usdc-ngn routes to it even though
+// Only cowrie is configured by default, so ngnt-ngn routes to it even though
 // moneygram is listed first in the registry.
 const COWRIE_ACCOUNT = Keypair.random().publicKey();
 const MONEYGRAM_ACCOUNT = Keypair.random().publicKey();
@@ -101,7 +101,7 @@ const {
 
 describe('intel.offramp.quote (#135)', () => {
   it('returns a schema-valid quote for a known corridor', async () => {
-    const quote = await getQuote({ from: 'USDC', to: 'NGN', amount: '100' });
+    const quote = await getQuote({ from: 'NGNT', to: 'NGN', amount: '100' });
     expect(() => QuoteOutputSchema.parse(quote)).not.toThrow();
     expect(quote.anchor).toBe('cowrie');
     expect(quote.quoteId).toMatch(/^[0-9a-f]{64}$/);
@@ -119,8 +119,8 @@ describe('intel.offramp.quote (#135)', () => {
   });
 
   it('produces a stable quoteId for identical inputs', async () => {
-    const a = await getQuote({ from: 'USDC', to: 'NGN', amount: '100' });
-    const b = await getQuote({ from: 'USDC', to: 'NGN', amount: '100' });
+    const a = await getQuote({ from: 'NGNT', to: 'NGN', amount: '100' });
+    const b = await getQuote({ from: 'NGNT', to: 'NGN', amount: '100' });
     expect(a.quoteId).toBe(b.quoteId);
   });
 
@@ -132,24 +132,24 @@ describe('intel.offramp.quote (#135)', () => {
 
   it('throws NO_ROUTE when no registered anchor has a verified account', async () => {
     vi.stubEnv('ANCHOR_PAYMENT_ACCOUNTS', '');
-    await expect(getQuote({ from: 'USDC', to: 'NGN', amount: '10' })).rejects.toMatchObject({
+    await expect(getQuote({ from: 'NGNT', to: 'NGN', amount: '10' })).rejects.toMatchObject({
       code: 'NO_ROUTE',
     });
   });
 
   it('throws RATE_UNAVAILABLE when the routed anchor has no live quote', async () => {
     await expect(
-      getQuote({ from: 'USDC', to: 'NGN', amount: RATE_UNAVAILABLE_AMOUNT })
+      getQuote({ from: 'NGNT', to: 'NGN', amount: RATE_UNAVAILABLE_AMOUNT })
     ).rejects.toMatchObject({ code: 'RATE_UNAVAILABLE' });
   });
 
   it('rejects an invalid amount via schema', async () => {
-    await expect(getQuote({ from: 'USDC', to: 'NGN', amount: '-5' })).rejects.toThrow();
-    await expect(getQuote({ from: 'USDC', to: 'NGN', amount: 'abc' })).rejects.toThrow();
+    await expect(getQuote({ from: 'NGNT', to: 'NGN', amount: '-5' })).rejects.toThrow();
+    await expect(getQuote({ from: 'NGNT', to: 'NGN', amount: 'abc' })).rejects.toThrow();
   });
 
   it('derives corridor ids case-insensitively', () => {
-    expect(corridorId('USDC', 'NGN')).toBe('usdc-ngn');
+    expect(corridorId('NGNT', 'NGN')).toBe('ngnt-ngn');
     expect(corridorId('usdc', 'ngn')).toBe('usdc-ngn');
   });
 });
@@ -157,7 +157,7 @@ describe('intel.offramp.quote (#135)', () => {
 describe('intel.offramp.prepare (#136)', () => {
   const validIntent = {
     type: 'offramp' as const,
-    sourceAsset: 'USDC',
+    sourceAsset: 'NGNT',
     destinationAsset: 'NGN',
     amount: '100',
     sender: Keypair.random().publicKey(),
@@ -250,7 +250,7 @@ describe('intel.execute (#819)', () => {
 
   const validIntent = {
     type: 'offramp' as const,
-    sourceAsset: 'USDC',
+    sourceAsset: 'NGNT',
     destinationAsset: 'NGN',
     amount: '100',
     recipient: 'recipient-123',
@@ -291,7 +291,7 @@ describe('intel.execute (#819)', () => {
       status: 'submitted',
       hash: 'a'.repeat(64),
       ledger: 12345,
-      corridorId: 'usdc-ngn',
+      corridorId: 'ngnt-ngn',
       anchorId: 'cowrie',
     });
     expect(submitTransaction).toHaveBeenCalledTimes(1);

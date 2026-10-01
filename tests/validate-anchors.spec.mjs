@@ -511,8 +511,8 @@ describe('anchors selector: degraded anchors are hidden', () => {
     expect(mod.isAnchorDegraded('moneygram')).toBe(true);
     expect(mod.getDegradedAnchorIds()).toEqual(['moneygram']);
 
-    // usdc-ngn is served by moneygram (degraded) + cowrie (healthy) → only cowrie shows.
-    const ngn = mod.getAnchorsByCorridorId('usdc-ngn').map((a) => a.id);
+    // ngnt-ngn is served by moneygram (degraded) + cowrie (healthy) → only cowrie shows.
+    const ngn = mod.getAnchorsByCorridorId('ngnt-ngn').map((a) => a.id);
     expect(ngn).toContain('cowrie');
     expect(ngn).not.toContain('moneygram');
 

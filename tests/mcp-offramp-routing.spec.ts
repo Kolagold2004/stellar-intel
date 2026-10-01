@@ -120,7 +120,7 @@ const RESOLVED_TARGET: AnchorRoutingTarget = {
 function intentFor(sender: string, destinationAsset = 'NGN') {
   return {
     type: 'offramp' as const,
-    sourceAsset: 'USDC',
+    sourceAsset: 'NGNT',
     destinationAsset,
     amount: '100',
     sender,
@@ -149,7 +149,7 @@ describe('MCP off-ramp routing via the anchor resolver', () => {
 
     const { unsignedTx } = await prepareIntent(intentFor(kp.publicKey()));
 
-    expect(routingTargetsForCorridor).toHaveBeenCalledWith('usdc-ngn');
+    expect(routingTargetsForCorridor).toHaveBeenCalledWith('ngnt-ngn');
     const tx = TransactionBuilder.fromXDR(unsignedTx, Networks.PUBLIC);
     expect('operations' in tx && tx.operations).toHaveLength(1);
     const op = (tx as { operations: Array<{ type: string; destination?: string }> }).operations[0];
@@ -163,7 +163,7 @@ describe('MCP off-ramp routing via the anchor resolver', () => {
 
     await expect(prepareIntent(intentFor(kp.publicKey(), 'ZZZ'))).rejects.toMatchObject({
       code: 'NO_ROUTE',
-      message: 'No route for corridor usdc-zzz',
+      message: 'No route for corridor ngnt-zzz',
     });
     expect(paymentSpy).not.toHaveBeenCalled();
   });
@@ -236,7 +236,7 @@ describe('MCP off-ramp routing via the anchor resolver', () => {
 
     await expect(
       executeIntent({ unsignedEnvelope, signature, signedTx: tx.toXDR() })
-    ).resolves.toMatchObject({ corridorId: 'usdc-ngn', anchorId: 'cowrie' });
+    ).resolves.toMatchObject({ corridorId: 'ngnt-ngn', anchorId: 'cowrie' });
     expect(submitTransaction).toHaveBeenCalledTimes(1);
   });
 });

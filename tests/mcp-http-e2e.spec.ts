@@ -114,7 +114,7 @@ describe('MCP server round-trip over streamable HTTP (#1049)', () => {
       name: 'intel.offramp.prepare',
       arguments: {
         type: 'offramp',
-        sourceAsset: 'USDC',
+        sourceAsset: 'NGNT',
         destinationAsset: 'NGN',
         amount: '100',
         sender: SENDER,

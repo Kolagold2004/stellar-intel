@@ -1,5 +1,5 @@
 import type { Anchor, AnchorRate, Corridor, RateComparison, Sep1TomlData } from '@/types';
-import { isAnchorAssetEnabled, USDC_ASSET } from '@/constants/anchors';
+import { isAnchorAssetEnabled } from '@/constants/anchors';
 import { getAnchorsByCorridorId, getCorridorById } from './anchors';
 import { resolveAnchor } from './sep1';
 import { assertSep38Capable, getSep38Price } from './sep38';
@@ -260,7 +260,7 @@ function hasSep6(toml: Sep1TomlData): boolean {
  * available. The firm rate is set by the anchor at execution time.
  */
 async function sep6IndicativeRate(
-  anchor: { id: string; name: string },
+  anchor: Anchor,
   toml: Sep1TomlData,
   fiatCode: string,
   corridorId: string,
@@ -275,9 +275,9 @@ async function sep6IndicativeRate(
   // stays `source: 'sep6-fee'` — still indicative, not a firm quote.
   const [config, fxRate] = await Promise.all([
     withTimeout(
-      getSep6Info(transferServer, USDC_ASSET.code).catch((err) => {
+      getSep6Info(transferServer, anchor.assetCode).catch((err) => {
         if (err instanceof Sep6AssetDisabledError) {
-          return getSep6Info(transferServer, USDC_ASSET.code, { exchange: true });
+          return getSep6Info(transferServer, anchor.assetCode, { exchange: true });
         }
         throw err;
       }),

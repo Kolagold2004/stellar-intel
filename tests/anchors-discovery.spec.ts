@@ -16,7 +16,7 @@ beforeEach(() => {
 });
 
 describe('discoverAnchorsForCorridor', () => {
-  it('returns successful usdc-ngn anchor resolutions with populated endpoints', async () => {
+  it('returns successful ngnt-ngn anchor resolutions with populated endpoints', async () => {
     vi.spyOn(StellarToml.Resolver, 'resolve').mockImplementation((domain) => {
       if (domain === 'stellar.moneygram.com') {
         return Promise.reject(new Error('not available'));
@@ -25,7 +25,7 @@ describe('discoverAnchorsForCorridor', () => {
       return Promise.resolve(tomlFor(String(domain)) as never);
     });
 
-    const result = await discoverAnchorsForCorridor('usdc-ngn');
+    const result = await discoverAnchorsForCorridor('ngnt-ngn');
     const ids = result.map((anchor) => anchor.id);
 
     expect(ids).toEqual(['cowrie']);

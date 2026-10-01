@@ -34,9 +34,9 @@ describe('ANCHORS', () => {
     expect(mg.corridors).toContain('usdc-brl');
   });
 
-  it('Cowrie is only in usdc-ngn', () => {
+  it('Cowrie is only in ngnt-ngn', () => {
     const cowrie = ANCHORS.find((a) => a.id === 'cowrie')!;
-    expect(cowrie.corridors).toEqual(['usdc-ngn']);
+    expect(cowrie.corridors).toEqual(['ngnt-ngn']);
   });
 
   it('Anclap covers ars-ars and pen-pen', () => {
@@ -103,13 +103,16 @@ describe('getAnchorById', () => {
 });
 
 describe('getAnchorsByCorridorId', () => {
-  it('returns MoneyGram and Cowrie for usdc-ngn', () => {
-    const anchors = getAnchorsByCorridorId('usdc-ngn');
-    const ids = anchors.map((a) => a.id);
+  it('returns Cowrie for ngnt-ngn', () => {
+    const ids = getAnchorsByCorridorId('ngnt-ngn').map((a) => a.id);
+    expect(ids).toEqual(['cowrie']);
+  });
+
+  it('returns MoneyGram but not Cowrie or NGNC for usdc-ngn', () => {
+    const ids = getAnchorsByCorridorId('usdc-ngn').map((a) => a.id);
     expect(ids).toContain('moneygram');
-    expect(ids).toContain('cowrie');
+    expect(ids).not.toContain('cowrie');
     expect(ids).not.toContain('ngnc');
-    expect(ids).toHaveLength(2);
   });
 
   it('returns NGNC for ngnc-ngn', () => {
@@ -161,7 +164,7 @@ describe('getDepositCapableAnchors', () => {
     const depositCapable = getDepositCapableAnchors('usdc-ngn');
     const ids = depositCapable.map((a) => a.id);
     expect(ids).toContain('moneygram');
-    expect(ids).toContain('cowrie');
+    expect(ids).not.toContain('cowrie'); // cowrie now serves ngnt-ngn (#1274)
     expect(ids).not.toContain('ngnc'); // ngnc now serves ngnc-ngn, not usdc-ngn (#1275)
   });
 
@@ -286,7 +289,7 @@ describe('getAnchorsByCorridorId excludes non-routable anchors', () => {
     const results = getAnchorsByCorridorId('usdc-ngn');
     const ids = results.map((a) => a.id);
     expect(ids).toContain('moneygram');
-    expect(ids).toContain('cowrie');
+    expect(ids).not.toContain('cowrie');
   });
 
   it('excludes a SEP-31-only anchor even if its corridors field names the corridor', () => {
