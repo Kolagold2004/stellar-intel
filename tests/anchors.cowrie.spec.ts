@@ -14,7 +14,7 @@ describe('cowrie.exchange anchor config', () => {
   });
 
   it('has an NGN corridor', () => {
-    expect(cowrie?.corridors).toContain('usdc-ngn');
+    expect(cowrie?.corridors).toContain('ngnt-ngn');
   });
 
   it('is not in any errors or disabled list', () => {

@@ -103,7 +103,7 @@ describe('MCP server round-trip via subprocess (#137)', () => {
     // either case rather than pinning a stale static number.
     const result = await client.callTool({
       name: 'intel.offramp.quote',
-      arguments: { from: 'USDC', to: 'NGN', amount: '100' },
+      arguments: { from: 'NGNT', to: 'NGN', amount: '100' },
     });
     if (result.isError) {
       const content = result.content as Array<{ type: string; text: string }>;
@@ -135,7 +135,7 @@ describe('MCP server round-trip via subprocess (#137)', () => {
       name: 'intel.offramp.prepare',
       arguments: {
         type: 'offramp',
-        sourceAsset: 'USDC',
+        sourceAsset: 'NGNT',
         destinationAsset: 'NGN',
         amount: '100',
         sender: SENDER,
@@ -162,7 +162,7 @@ describe('MCP server round-trip via subprocess (#137)', () => {
       name: 'intel.offramp.prepare',
       arguments: {
         type: 'offramp',
-        sourceAsset: 'USDC',
+        sourceAsset: 'NGNT',
         destinationAsset: 'NGN',
         amount: '10',
         sender: SENDER,
@@ -201,7 +201,7 @@ describe('MCP server round-trip via subprocess (#137)', () => {
       name: 'intel.offramp.prepare',
       arguments: {
         type: 'offramp',
-        sourceAsset: 'USDC',
+        sourceAsset: 'NGNT',
         destinationAsset: 'NGN',
         amount: '10',
         sender: SENDER,

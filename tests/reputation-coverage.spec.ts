@@ -17,7 +17,7 @@ function row(overrides: Partial<OutcomeLogRow> = {}): OutcomeLogRow {
   return {
     intentHash: Math.random().toString(16).slice(2),
     anchorId: 'cowrie',
-    corridor: 'usdc-ngn',
+    corridor: 'ngnt-ngn',
     quotedRate: '1500',
     deliveredRate: null,
     quotedAmount: '100',
@@ -83,7 +83,7 @@ describe('deriveReputationCoverage — multiple rows', () => {
 
   it('counts every row in totalSamples regardless of anchor or corridor', () => {
     const rows = [
-      row({ anchorId: 'cowrie', corridor: 'usdc-ngn' }),
+      row({ anchorId: 'cowrie', corridor: 'ngnt-ngn' }),
       row({ anchorId: 'anclap', corridor: 'usdc-ars' }),
       row({ anchorId: 'mykobo', corridor: 'usdc-eur' }),
     ];

@@ -42,15 +42,19 @@ export const ANCHORS: Anchor[] = [
     sep10ClientDomain: true,
   },
   {
-    // SEP-6 programmatic withdraw — rates are indicative, not firm quotes
+    // Verified 2026-09-23 (census): Cowrie's SEP-6 /info (api.cowrie.exchange/transfer/info)
+    // lists deposit [NGNT] and withdraw [NGNT] only; USDC appears solely on its SEP-31 receive
+    // rail (api.cowrie.exchange/sep31/direct/info), which we cannot route. So it serves the
+    // ngnt-ngn corridor over SEP-6 and tracks usdc-ngn as SEP-31-only.
     id: 'cowrie',
     name: 'Cowrie Exchange',
     homeDomain: 'cowrie.exchange',
     serviceDomain: 'api.cowrie.exchange',
-    corridors: ['usdc-ngn'],
-    seps: ['sep6', 'sep10'],
-    assetCode: 'USDC',
-    assetIssuer: USDC_ISSUER,
+    corridors: ['ngnt-ngn'],
+    sep31Corridors: ['usdc-ngn'],
+    seps: ['sep6', 'sep10', 'sep31'],
+    assetCode: 'NGNT',
+    assetIssuer: 'GAWODAROMJ33V5YDFY3NPYTHVYQG7MJXVJ2ND3AOGIHYRWINES6ACCPD',
   },
   // anclap.com: ARS and PEN fiat corridors — SEP-6 and SEP-24 deposit and withdraw enabled.
   // Verified 2026-09-23. TOML CURRENCIES: ARS issuer GCYE7C77EB5AWAA25R5XMWNI2EDOKTTFTTPZKM2SR5DI4B4WFD52DARS,
@@ -332,6 +336,15 @@ export const CORRIDORS: Corridor[] = [
     countryName: 'Nigeria',
   },
   {
+    id: 'ngnt-ngn',
+    from: 'NGNT',
+    fromIssuer: 'GAWODAROMJ33V5YDFY3NPYTHVYQG7MJXVJ2ND3AOGIHYRWINES6ACCPD',
+    fromPeg: 'NGN',
+    to: 'NGN',
+    countryCode: 'NG',
+    countryName: 'Nigeria',
+  },
+  {
     id: 'usdc-kes',
     from: 'USDC',
     fromIssuer: USDC_ISSUER,
@@ -574,6 +587,7 @@ export const TYPICAL_AMOUNTS: Record<string, number[]> = {
   'brlt-brl': [100, 250, 500],
   'usdc-zar': [50, 150, 300],
   'usdc-xof': [50, 100, 200],
+  'ngnt-ngn': [50000, 100000, 200000],
 };
 
 /** Corridor IDs that at least one anchor in the registry currently serves. */

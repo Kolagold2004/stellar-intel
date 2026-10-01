@@ -39,7 +39,7 @@ function outcome(extra: Record<string, unknown> = {}) {
   return {
     intentHash: HASH,
     anchorId: 'cowrie',
-    corridor: 'usdc-ngn',
+    corridor: 'ngnt-ngn',
     quotedRate: '1500.0',
     quotedAmount: '100',
     outcome: 'completed' as const,
@@ -224,7 +224,7 @@ describe('POST /api/reputation/append — webhooks (#1341)', () => {
         payload: {
           intentHash: HASH,
           anchorId: 'cowrie',
-          corridor: 'usdc-ngn',
+          corridor: 'ngnt-ngn',
           outcome: 'completed',
           createdAt: row?.createdAt,
         },
@@ -234,7 +234,7 @@ describe('POST /api/reputation/append — webhooks (#1341)', () => {
         payload: {
           intentHash: HASH,
           anchorId: 'cowrie',
-          corridor: 'usdc-ngn',
+          corridor: 'ngnt-ngn',
           quotedAmount: '100',
           stellarTransactionId: STELLAR_TX,
         },
@@ -258,7 +258,7 @@ describe('POST /api/reputation/append — webhooks (#1341)', () => {
       expect(emitted[1]?.payload).toEqual({
         intentHash: HASH,
         anchorId: 'cowrie',
-        corridor: 'usdc-ngn',
+        corridor: 'ngnt-ngn',
         outcome,
       });
     }

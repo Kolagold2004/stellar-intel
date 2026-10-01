@@ -68,8 +68,8 @@ describe('anchor-health tool', () => {
       json: () => Promise.resolve(baseOkResponse),
     });
 
-    // cowrie supports USDC (it has usdc-ngn corridor)
-    const result = await fetchAnchorHealth('cowrie.exchange', 'USDC');
+    // cowrie supports NGNT (it has ngnt-ngn corridor)
+    const result = await fetchAnchorHealth('cowrie.exchange', 'NGNT');
     expect(result).toEqual(baseOkResponse);
   });
 
