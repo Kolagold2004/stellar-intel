@@ -23,6 +23,7 @@ import aps from './aps.json';
 import bitnovo from './bitnovo.json';
 import perahub from './perahub.json';
 import clpx from './clpx.json';
+import sofizpay from './sofizpay.json';
 
 export interface OnrampDepositCapture {
   _comment: string;
@@ -59,6 +60,7 @@ export const ONRAMP_DEPOSIT_CAPTURES: Record<string, OnrampDepositCapture> = {
   bitnovo,
   perahub,
   clpx,
+  sofizpay,
 };
 
 /** Anchors whose registered asset can actually be deposited today, per the capture above. */
