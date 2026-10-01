@@ -5,7 +5,7 @@ import { resolveAnchor } from './sep1';
 import { assertSep38Capable, getSep38Price } from './sep38';
 import { getSep24Info } from './sep24';
 import { getSep6Info, Sep6AssetDisabledError } from './sep6';
-import { getUsdFxRate } from '@/lib/fx/rates';
+import { getFxRate } from '@/lib/fx/rates';
 import { SepError, TimeoutError } from './errors';
 import { fetchReputationScores } from '@/lib/reputation/scores';
 
@@ -190,14 +190,16 @@ async function fetchPriceAcrossContexts(
 
 /**
  * Builds an *indicative* off-ramp estimate for an anchor that does not offer a
- * SEP-38 quote server: live USD→fiat reference rate applied to the net sold asset
- * after the anchor's own published SEP-24 withdraw fee. This is an estimate for
- * USD-pegged assets — the firm rate is set by the anchor inside the SEP-24
- * interactive flow at execution.
+ * SEP-38 quote server: live peg→fiat reference rate applied to the net sold asset
+ * after the anchor's own published SEP-24 withdraw fee. This is a peg-aware
+ * estimate — for USD-pegged assets (USDC) it behaves as before; for assets pegged
+ * to their own payout currency (e.g. BRL token → BRL) the rate is 1:1. The firm
+ * rate is set by the anchor inside the SEP-24 interactive flow at execution.
  */
 async function indicativeRate(
   anchor: Anchor,
   toml: Sep1TomlData,
+  pegCode: string,
   fiatCode: string,
   corridorId: string,
   amount: string,
@@ -215,7 +217,7 @@ async function indicativeRate(
       `${anchor.name} SEP-24 /info`,
       serverRatesConfig.sep24Info.retryAttempts
     ),
-    getUsdFxRate(fiatCode),
+    getFxRate(pegCode, fiatCode),
   ]);
 
   const assetInfo = info.withdraw[anchor.assetCode];
@@ -226,7 +228,7 @@ async function indicativeRate(
   const feeFixed = assetInfo.fee_fixed ?? 0;
   const feePercent = assetInfo.fee_percent ?? 0;
   const netSellAmount = Math.max(0, sellAmount - feeFixed) * (1 - feePercent / 100);
-  const totalReceived = netSellAmount * fxRate; // USD-pegged assets treated 1:1 with USD
+  const totalReceived = netSellAmount * fxRate; // peg-aware: 1:1 for same-currency corridors
   const effectiveRate = sellAmount > 0 ? totalReceived / sellAmount : 0;
 
   if (!Number.isFinite(totalReceived) || totalReceived <= 0 || effectiveRate <= 0) {
@@ -254,14 +256,16 @@ function hasSep6(toml: Sep1TomlData): boolean {
 }
 
 /**
- * Builds an *indicative* off-ramp estimate for a SEP-6 anchor: live USD→fiat
- * reference rate applied to the net USDC after the anchor's SEP-6 fees from
- * GET /info. This is a Tier-3 fallback when neither SEP-38 nor SEP-24 are
- * available. The firm rate is set by the anchor at execution time.
+ * Builds an *indicative* off-ramp estimate for a SEP-6 anchor: live peg→fiat
+ * reference rate applied to the net sold asset after the anchor's SEP-6 fees
+ * from GET /info. This is a Tier-3 fallback when neither SEP-38 nor SEP-24 are
+ * available. For same-currency corridors (e.g. BRL token → BRL) the rate is
+ * 1:1. The firm rate is set by the anchor at execution time.
  */
 async function sep6IndicativeRate(
   anchor: Anchor,
   toml: Sep1TomlData,
+  pegCode: string,
   fiatCode: string,
   corridorId: string,
   amount: string,
@@ -284,7 +288,7 @@ async function sep6IndicativeRate(
       SEP6_INFO_TIMEOUT_MS,
       `${anchor.name} SEP-6 /info`
     ),
-    getUsdFxRate(fiatCode),
+    getFxRate(pegCode, fiatCode),
   ]);
 
   const feeFixed = config.feeFixed;
@@ -493,7 +497,15 @@ async function quoteAnchorOnCorridor(
   // published SEP-24 withdraw fee. Differentiated per anchor by their fees;
   // the firm rate is confirmed by the anchor at execution time.
   try {
-    const rate = await indicativeRate(anchor, toml, corridor.to, corridorId, amount, sellAmount);
+    const rate = await indicativeRate(
+      anchor,
+      toml,
+      corridor.fromPeg,
+      corridor.to,
+      corridorId,
+      amount,
+      sellAmount
+    );
     if (isUnverifiedPayout) {
       rate.unverifiedPayout = true;
     }
@@ -511,6 +523,7 @@ async function quoteAnchorOnCorridor(
       const rate = await sep6IndicativeRate(
         anchor,
         toml,
+        corridor.fromPeg,
         corridor.to,
         corridorId,
         amount,

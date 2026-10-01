@@ -21,14 +21,14 @@ vi.mock('@/lib/stellar/sep38', () => ({
   getSep38Price: vi.fn(),
 }));
 vi.mock('@/lib/stellar/sep24', () => ({ getSep24Info: vi.fn() }));
-vi.mock('@/lib/fx/rates', () => ({ getUsdFxRate: vi.fn() }));
+vi.mock('@/lib/fx/rates', () => ({ getUsdFxRate: vi.fn(), getFxRate: vi.fn() }));
 
 import { fetchCorridorRates } from '@/lib/stellar/server-rates';
 import { getAnchorsByCorridorId, getCorridorById } from '@/lib/stellar/anchors';
 import { resolveAnchor } from '@/lib/stellar/sep1';
 import { assertSep38Capable, getSep38Price } from '@/lib/stellar/sep38';
 import { getSep24Info } from '@/lib/stellar/sep24';
-import { getUsdFxRate } from '@/lib/fx/rates';
+import { getFxRate } from '@/lib/fx/rates';
 
 const ISSUER = 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
 
@@ -96,7 +96,7 @@ beforeEach(() => {
   vi.mocked(assertSep38Capable).mockReturnValue('https://zeam.money/sep38');
   vi.mocked(getSep38Price).mockResolvedValue(goodPrice);
   vi.mocked(getSep24Info).mockResolvedValue(goodSep24Info);
-  vi.mocked(getUsdFxRate).mockResolvedValue(18);
+  vi.mocked(getFxRate).mockResolvedValue(18);
 });
 
 afterEach(() => {
