@@ -11,6 +11,11 @@ const FLAGGED_OFF_CORRIDORS = {
   // it needs a bilateral sending-anchor agreement. The corridor stays defined so the
   // lane is in the record, but it must not be treated as covered by registry `corridors`.
   'usdc-php': 'SEP-31-only (perahub); tracked, not routable',
+  // kbtrading (#1304) serves clpx-clp over SEP-31 only: its SEP-6/SEP-24 rails
+  // take CLPX in but pay BTCLN (Lightning) out, and withdraw.CLPX is advertised
+  // disabled. The corridor stays defined so the lane is in the record, but it
+  // must not count as covered by registry `corridors`.
+  'clpx-clp': 'SEP-31-only (clpx); tracked, not routable',
 } as const satisfies Record<string, string>;
 
 function anchorIdsByCorridor(anchors: readonly Anchor[]): Map<string, string[]> {

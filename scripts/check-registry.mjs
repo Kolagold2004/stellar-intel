@@ -44,6 +44,7 @@ const ALLOWLIST = {
   bitnovo:
     'Live SEP-24 runs at stellar.bitnovo.com, which the committed survey snapshot does not classify as transfer-capable; re-survey to confirm and remove this entry once the snapshot covers it.',
   perahub: 'SEP-31-only; never transfer-capable by design',
+  clpx: 'Absent from the public anchor directory the survey crawls — it is not in the 2026-09-01 snapshot at all — but its own TOML advertises live SEP-6 and SEP-24 endpoints and CLPX deposit is enabled. Its CLPX withdraw is advertised disabled, so the only fiat-out path is SEP-31, which is never routed.',
 };
 
 /** Extract the `[...]` literal assigned to `export const ANCHORS`. */
