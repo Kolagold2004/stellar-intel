@@ -64,6 +64,11 @@
       "homeDomain": "sofizpay.com",
       "tomlHttp": 200,
       "anchorQuoteServer": null
+    },
+    "finclusive": {
+      "homeDomain": "finclusive.com",
+      "tomlHttp": 200,
+      "anchorQuoteServer": null
     }
   }
 }
