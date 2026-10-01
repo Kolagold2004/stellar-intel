@@ -49,6 +49,8 @@ const ALLOWLIST = {
     'First Algerian corridor (DZT): live SEP-24 runs at sofizpay.com, which the tag-based survey snapshot does not classify as transfer-capable; re-survey to confirm and remove this entry once the snapshot covers it.',
   finclusive:
     'US rail with no withdraw types on /info: live SEP-24 runs at api.finclusive.com/stellar/transfer, which the tag-based survey snapshot does not classify as transfer-capable; re-survey to confirm and remove this entry once the snapshot covers it.',
+  latamex:
+    'Not in the stellar.expert anchor tag the committed snapshot was built from; verified transfer-capable 2026-09-23. Remove once the multi-source survey snapshot includes it.',
 };
 
 /** Extract the `[...]` literal assigned to `export const ANCHORS`. */
