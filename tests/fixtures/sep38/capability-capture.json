@@ -59,6 +59,11 @@
       "homeDomain": "kbtrading.org",
       "tomlHttp": 200,
       "anchorQuoteServer": null
+    },
+    "sofizpay": {
+      "homeDomain": "sofizpay.com",
+      "tomlHttp": 200,
+      "anchorQuoteServer": null
     }
   }
 }

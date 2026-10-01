@@ -234,6 +234,24 @@ export const ANCHORS: Anchor[] = [
     assetIssuer: 'GDYSPBVZHPQTYMGSYNOHRZQNLB3ZWFVQ2F7EP7YBOLRGD42XIC3QUX5G',
     seps: ['sep6', 'sep10', 'sep24', 'sep31'],
   },
+  // sofizpay.com: DZT (Algerian dinar stablecoin) issuer with live SEP-6 and
+  // SEP-24 deposit/withdraw rails — the first Algerian corridor on Stellar.
+  // Verified 2026-09-23, re-checked 2026-09-29. Both TRANSFER_SERVER and
+  // TRANSFER_SERVER_SEP0024 are "https://sofizpay.com/sep24/" (trailing
+  // slash); SEP-24 /info lists deposit/withdraw asset pairs [DZT] with
+  // deposit min 500 and withdraw min 1000 at fee 200 + 1%; SEP-10 /auth is
+  // alive and a KYC_SERVER is present. The TOML CURRENCIES list only DZT
+  // (issuer GCAZI7YBLIDJWIVEL7ETNAZGPP3LC24NO6KAOBWZHUERXQ7M5BC52DLV, no
+  // anchor_asset declared), so DZT is registered as the sold asset directly.
+  {
+    id: 'sofizpay',
+    name: 'SofizPay',
+    homeDomain: 'sofizpay.com',
+    corridors: ['dzt-dzd'],
+    assetCode: 'DZT',
+    assetIssuer: 'GCAZI7YBLIDJWIVEL7ETNAZGPP3LC24NO6KAOBWZHUERXQ7M5BC52DLV',
+    seps: ['sep6', 'sep10', 'sep24'],
+  },
 ];
 
 export const KNOWN_ANCHORS = ANCHORS;
@@ -254,6 +272,8 @@ const PEN_ISSUER = 'GA4TDPNUCZPTOHB3TKUYMDCRVATXKEADH7ZEYEBWJKQKE2UBFCYNBPEN';
 const NGNC_ISSUER = 'GASBV6W7GGED66MXEVC7YZHTWWYMSVYEY35USF2HJZBLABLYIFQGXZY6';
 /** Issuer of KB Trading's CLPX token (see the clpx anchor entry above). */
 const CLPX_ISSUER = 'GDYSPBVZHPQTYMGSYNOHRZQNLB3ZWFVQ2F7EP7YBOLRGD42XIC3QUX5G';
+/** Issuer of SofizPay's DZT token (see the sofizpay anchor entry above). */
+const DZT_ISSUER = 'GCAZI7YBLIDJWIVEL7ETNAZGPP3LC24NO6KAOBWZHUERXQ7M5BC52DLV';
 
 /**
  * Corridor ids follow the convention `<on-chain asset code>-<payout fiat code>`,
@@ -378,6 +398,15 @@ export const CORRIDORS: Corridor[] = [
     countryCode: 'NG',
     countryName: 'Nigeria',
   },
+  {
+    id: 'dzt-dzd',
+    from: 'DZT',
+    fromIssuer: DZT_ISSUER,
+    fromPeg: 'DZD',
+    to: 'DZD',
+    countryCode: 'DZ',
+    countryName: 'Algeria',
+  },
   // ─── v1.1 target corridors ────────────────────────────────────────────────
   // Scaffolded ahead of anchor onboarding (see .github/ISSUE_TEMPLATE/anchor-onboard.yml).
   // Gated behind the `v11Corridors` flag AND anchor coverage — see V11_CORRIDOR_IDS
@@ -471,6 +500,7 @@ export const TYPICAL_AMOUNTS: Record<string, number[]> = {
   'ars-ars': [50000, 100000, 250000],
   'pen-pen': [100, 300, 500],
   'ngnc-ngn': [20000, 50000, 100000],
+  'dzt-dzd': [5000, 10000, 25000],
   'usdc-zar': [50, 150, 300],
   'usdc-xof': [50, 100, 200],
 };
