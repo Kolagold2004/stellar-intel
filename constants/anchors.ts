@@ -70,6 +70,23 @@ export const ANCHORS: Anchor[] = [
   // /info: deposit [NGNC] (min 20,000), withdraw [NGNC] (min 10,000).
   // Issuer: GASBV6W7GGED66MXEVC7YZHTWWYMSVYEY35USF2HJZBLABLYIFQGXZY6, anchor_asset NGN.
   // Note: GHSC and KESC are status=pending in TOML and not currently on rail.
+  // latamex.com (Settle Network): ARS and BRL fiat corridors — SEP-6 and SEP-24 deposit and withdraw.
+  // Verified 2026-09-23. TOML at https://pubnet-sep.latamex.com/.well-known/stellar.toml:
+  // TRANSFER_SERVER and TRANSFER_SERVER_SEP0024 = https://transfer-server.zetl.network,
+  // WEB_AUTH_ENDPOINT = https://transfer-server.zetl.network/auth. CURRENCIES: ARST issuer
+  // GCSAZVWXZKWS4XS223M5F54H2B6XPIIXZZGP7KEAIU6YSL5HDRGCI3DG (anchor_asset ARS), BRLT issuer
+  // GCHQ3F2BF5P74DMDNOOGHT5DUCKC773AW5DTOFINC26W4KGYFPYDPRSO (anchor_asset BRL).
+  // /info: deposit and withdraw [ARST, BRLT] enabled; plain USDC deposit/withdraw disabled;
+  // USDC only via deposit-exchange / withdraw-exchange. No SEP-38.
+  {
+    id: 'latamex',
+    name: 'Latamex',
+    homeDomain: 'pubnet-sep.latamex.com',
+    corridors: ['arst-ars', 'brlt-brl'],
+    assetCode: 'ARST',
+    assetIssuer: 'GCSAZVWXZKWS4XS223M5F54H2B6XPIIXZZGP7KEAIU6YSL5HDRGCI3DG',
+    seps: ['sep6', 'sep10', 'sep24'],
+  },
   {
     id: 'ngnc',
     name: 'NGNC',
@@ -294,6 +311,10 @@ const NGNC_ISSUER = 'GASBV6W7GGED66MXEVC7YZHTWWYMSVYEY35USF2HJZBLABLYIFQGXZY6';
 const CLPX_ISSUER = 'GDYSPBVZHPQTYMGSYNOHRZQNLB3ZWFVQ2F7EP7YBOLRGD42XIC3QUX5G';
 /** Issuer of SofizPay's DZT token (see the sofizpay anchor entry above). */
 const DZT_ISSUER = 'GCAZI7YBLIDJWIVEL7ETNAZGPP3LC24NO6KAOBWZHUERXQ7M5BC52DLV';
+/** Issuer of Latamex's ARST token (see the latamex anchor entry above). */
+const ARST_ISSUER = 'GCSAZVWXZKWS4XS223M5F54H2B6XPIIXZZGP7KEAIU6YSL5HDRGCI3DG';
+/** Issuer of Latamex's BRLT token (see the latamex anchor entry above). */
+const BRLT_ISSUER = 'GCHQ3F2BF5P74DMDNOOGHT5DUCKC773AW5DTOFINC26W4KGYFPYDPRSO';
 
 /**
  * Corridor ids follow the convention `<on-chain asset code>-<payout fiat code>`,
@@ -436,6 +457,24 @@ export const CORRIDORS: Corridor[] = [
     countryCode: 'DZ',
     countryName: 'Algeria',
   },
+  {
+    id: 'arst-ars',
+    from: 'ARST',
+    fromIssuer: ARST_ISSUER,
+    fromPeg: 'ARS',
+    to: 'ARS',
+    countryCode: 'AR',
+    countryName: 'Argentina',
+  },
+  {
+    id: 'brlt-brl',
+    from: 'BRLT',
+    fromIssuer: BRLT_ISSUER,
+    fromPeg: 'BRL',
+    to: 'BRL',
+    countryCode: 'BR',
+    countryName: 'Brazil',
+  },
   // ─── v1.1 target corridors ────────────────────────────────────────────────
   // Scaffolded ahead of anchor onboarding (see .github/ISSUE_TEMPLATE/anchor-onboard.yml).
   // Gated behind the `v11Corridors` flag AND anchor coverage — see V11_CORRIDOR_IDS
@@ -531,6 +570,8 @@ export const TYPICAL_AMOUNTS: Record<string, number[]> = {
   'pen-pen': [100, 300, 500],
   'ngnc-ngn': [20000, 50000, 100000],
   'dzt-dzd': [5000, 10000, 25000],
+  'arst-ars': [50000, 100000, 250000],
+  'brlt-brl': [100, 250, 500],
   'usdc-zar': [50, 150, 300],
   'usdc-xof': [50, 100, 200],
 };

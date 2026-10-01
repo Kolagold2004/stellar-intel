@@ -19,6 +19,11 @@
       "tomlHttp": 200,
       "anchorQuoteServer": null
     },
+    "latamex": {
+      "homeDomain": "pubnet-sep.latamex.com",
+      "tomlHttp": 200,
+      "anchorQuoteServer": null
+    },
     "ngnc": {
       "homeDomain": "ngnc.online",
       "tomlHttp": 200,
