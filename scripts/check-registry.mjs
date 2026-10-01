@@ -47,6 +47,8 @@ const ALLOWLIST = {
   clpx: 'Absent from the public anchor directory the survey crawls — it is not in the 2026-09-01 snapshot at all — but its own TOML advertises live SEP-6 and SEP-24 endpoints and CLPX deposit is enabled. Its CLPX withdraw is advertised disabled, so the only fiat-out path is SEP-31, which is never routed.',
   sofizpay:
     'First Algerian corridor (DZT): live SEP-24 runs at sofizpay.com, which the tag-based survey snapshot does not classify as transfer-capable; re-survey to confirm and remove this entry once the snapshot covers it.',
+  finclusive:
+    'US rail with no withdraw types on /info: live SEP-24 runs at api.finclusive.com/stellar/transfer, which the tag-based survey snapshot does not classify as transfer-capable; re-survey to confirm and remove this entry once the snapshot covers it.',
 };
 
 /** Extract the `[...]` literal assigned to `export const ANCHORS`. */
