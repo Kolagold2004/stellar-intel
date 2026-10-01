@@ -14,7 +14,7 @@
 import { z } from 'zod';
 import { CORRIDORS } from '@/constants';
 import { hashIntent, type Intent } from '@/lib/intent/hash';
-import { HORIZON_URL } from '@/lib/config';
+import { HORIZON_URL, NETWORK_PASSPHRASE } from '@/lib/config';
 import { STELLAR_PUBKEY_PATTERN, AMOUNT_7DP_PATTERN } from '@/lib/patterns';
 import { fetchCorridorRates } from '@/lib/stellar/server-rates';
 import {
@@ -164,13 +164,13 @@ export async function buildUnsignedOfframpTx(
   assetIssuer: string | null,
   quoteId: string
 ): Promise<string> {
-  const { Asset, Networks, TransactionBuilder, Operation, Memo, BASE_FEE, Account } =
+  const { Asset, TransactionBuilder, Operation, Memo, BASE_FEE, Account } =
     await import('@stellar/stellar-sdk');
   const asset = assetIssuer !== null ? new Asset(assetCode, assetIssuer) : Asset.native();
   const account = new Account(senderPublicKey, '0');
   const tx = new TransactionBuilder(account, {
     fee: BASE_FEE,
-    networkPassphrase: Networks.PUBLIC,
+    networkPassphrase: NETWORK_PASSPHRASE,
   })
     .addOperation(Operation.payment({ destination: anchorAccount, asset, amount }))
     .addMemo(Memo.hash(Buffer.from(quoteId, 'hex')))
@@ -327,7 +327,7 @@ export async function executeIntent(input: ExecuteInput): Promise<ExecuteOutput>
   const targets = routingTargetsForCorridor(id);
   if (targets.length === 0) throw noRouteError(id);
 
-  const { Keypair, TransactionBuilder, Networks, Horizon } = await import('@stellar/stellar-sdk');
+  const { Keypair, TransactionBuilder, Horizon } = await import('@stellar/stellar-sdk');
 
   let senderKey: InstanceType<typeof Keypair>;
   try {
@@ -354,7 +354,7 @@ export async function executeIntent(input: ExecuteInput): Promise<ExecuteOutput>
 
   let tx: ReturnType<typeof TransactionBuilder.fromXDR>;
   try {
-    tx = TransactionBuilder.fromXDR(parsed.signedTx, Networks.PUBLIC);
+    tx = TransactionBuilder.fromXDR(parsed.signedTx, NETWORK_PASSPHRASE);
   } catch {
     throw new OfframpToolError('signedTx is not a valid Stellar transaction XDR', 'TX_MISMATCH');
   }
@@ -431,7 +431,8 @@ export async function executeIntent(input: ExecuteInput): Promise<ExecuteOutput>
   // stellar-sdk 17 hands back a plain Uint8Array for a hash memo where 16 gave a
   // Buffer. Buffer extends Uint8Array, so this accepts both.
   const memo = ('memo' in tx ? tx.memo : undefined) as
-    { type: string; value?: Uint8Array | string } | undefined;
+    | { type: string; value?: Uint8Array | string }
+    | undefined;
   const memoValue = memo?.value instanceof Uint8Array ? Buffer.from(memo.value) : undefined;
   if (memo?.type !== 'hash' || !memoValue || !memoValue.equals(expectedMemo)) {
     throw new OfframpToolError('Transaction memo does not match the intent hash', 'TX_MISMATCH');

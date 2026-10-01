@@ -14,6 +14,8 @@ export interface ReputationOutcomeRow {
   deliveredAssetIssuer?: string | null;
   deliveredAmount?: string | number | null;
   reconciledAt?: Date | string | null;
+  /** The account that signed the intent hash (#1267). Used to confirm the delivered payment actually came from the party who signed for it, not merely that someone signed some hash. */
+  signerAccount?: string | null;
 }
 
 export interface ReconciledOutcomeUpdate {
@@ -25,7 +27,7 @@ export interface ReconciledOutcomeUpdate {
 
 export interface ReconcileOutcomeResult {
   rowId: string;
-  status: 'updated' | 'skipped' | 'missing_payment' | 'failed';
+  status: 'updated' | 'skipped' | 'missing_payment' | 'failed' | 'source_mismatch';
   deliveredAmount?: string;
   deliveredRate?: string;
   error?: string;
@@ -35,6 +37,8 @@ export interface ReconcileOptions {
   now?: Date;
   reconcileWindowMs?: number;
   fetchPaymentsForTransaction?: ReconcilePaymentLoader;
+  /** Called when the delivered payment's source does not match `row.signerAccount` (#1334). */
+  onSourceMismatch?: SourceMismatchHandler;
 }
 
 /* eslint-disable no-unused-vars */
@@ -45,6 +49,10 @@ export interface ReconcilePaymentLoader {
 export interface UpdateReputationOutcome {
   (row: ReputationOutcomeRow, update: ReconciledOutcomeUpdate): Promise<void>;
 }
+
+export interface SourceMismatchHandler {
+  (row: ReputationOutcomeRow): Promise<void>;
+}
 /* eslint-enable no-unused-vars */
 
 export interface HorizonPaymentRecord {
@@ -54,6 +62,10 @@ export interface HorizonPaymentRecord {
   asset_code?: string;
   asset_issuer?: string;
   to?: string;
+  /** Source account of the payment operation, as returned by most Horizon payment records. */
+  from?: string;
+  /** Alternate field name Horizon uses for the source account on some operation types. */
+  source_account?: string;
   transaction_hash?: string;
 }
 
@@ -161,6 +173,20 @@ export async function reconcileReputationOutcomes(
       if (!deliveredPayment?.amount) {
         results.push({ rowId: row.id, status: 'missing_payment' });
         continue;
+      }
+
+      // A signature over the intent hash only proves *someone* signed for this
+      // transaction id — not that the signer is who actually delivered the
+      // payment. Require the on-chain payment's source account to match the
+      // account that signed, so a stranger cannot claim credit for (or divert
+      // scoring impact onto) a transaction they did not send.
+      if (isPresent(row.signerAccount)) {
+        const paymentSource = deliveredPayment.from ?? deliveredPayment.source_account;
+        if (paymentSource !== row.signerAccount) {
+          results.push({ rowId: row.id, status: 'source_mismatch' });
+          if (options.onSourceMismatch) await options.onSourceMismatch(row);
+          continue;
+        }
       }
 
       const deliveredAmount = deliveredPayment.amount;

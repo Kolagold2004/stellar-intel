@@ -41,3 +41,32 @@ export function getClientDomainKeypair(): Keypair | null {
     return null;
   }
 }
+
+export interface ClientDomainConfig {
+  domain: string;
+  signingPublicKey: string;
+}
+
+/** The hostname to publish when `CLIENT_DOMAIN` is unset: the site's own host. */
+function defaultClientDomain(): string {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://stellar-intel.vercel.app';
+  try {
+    return new URL(siteUrl).hostname;
+  } catch {
+    return 'stellar-intel.vercel.app';
+  }
+}
+
+/**
+ * Public client-domain config for our own stellar.toml: the hostname wallets pass
+ * as `client_domain`, and the public key anchors verify the co-signature against.
+ * Null when no signing secret is configured — there is nothing to publish.
+ */
+export function getClientDomainConfig(): ClientDomainConfig | null {
+  const keypair = getClientDomainKeypair();
+  if (!keypair) return null;
+  return {
+    domain: getClientDomain() ?? defaultClientDomain(),
+    signingPublicKey: keypair.publicKey(),
+  };
+}
