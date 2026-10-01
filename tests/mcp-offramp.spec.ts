@@ -522,3 +522,142 @@ describe('intel.execute (#819)', () => {
     });
   });
 });
+
+// ─── Configured-network passphrase (#1331) ─────────────────────────────────
+//
+// Both the unsigned-tx builder and the signed-tx parser used to hardcode
+// Networks.PUBLIC, so a testnet deployment of the MCP tools handed agents
+// mainnet transactions to sign, and executeIntent parsed a signed testnet
+// transaction under the wrong network while still submitting to the
+// env-configured Horizon. lib/config.NETWORK_PASSPHRASE (already used by the
+// web intent path, lib/intent/offramp.ts, since #941) fixes both call sites.
+describe('MCP off-ramp respects the configured network passphrase (#1331)', () => {
+  afterEach(() => {
+    vi.resetModules();
+  });
+
+  it('builds the unsigned tx for intel.offramp.prepare against the configured testnet passphrase', async () => {
+    vi.stubEnv('NEXT_PUBLIC_STELLAR_NETWORK', 'testnet');
+    // Canonical testnet pinning (#1333): lib/config now rejects a network/issuer/
+    // Horizon combination that doesn't match, so switching the network under
+    // test means switching these together too.
+    vi.stubEnv(
+      'NEXT_PUBLIC_USDC_ISSUER',
+      'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5'
+    );
+    vi.stubEnv('NEXT_PUBLIC_HORIZON_URL', 'https://horizon-testnet.stellar.org');
+    vi.resetModules();
+    const testnetOfframp = await import('@/lib/mcp/offramp');
+
+    const kp = Keypair.random();
+    const intent = {
+      type: 'offramp' as const,
+      sourceAsset: 'NGNT',
+      destinationAsset: 'NGN',
+      amount: '100',
+      sender: kp.publicKey(),
+      recipient: 'recipient-123',
+    };
+
+    const { unsignedTx } = await testnetOfframp.prepareIntent(intent);
+
+    // Parses under TESTNET (the mainnet passphrase would fail to decode a
+    // testnet-signed envelope's network id in a real client).
+    const tx = TransactionBuilder.fromXDR(unsignedTx, Networks.TESTNET);
+    expect(tx.networkPassphrase).toBe(Networks.TESTNET);
+  });
+
+  it('parses a signed transaction with executeIntent using the configured testnet passphrase, not the mainnet default', async () => {
+    vi.stubEnv('NEXT_PUBLIC_STELLAR_NETWORK', 'testnet');
+    // Canonical testnet pinning (#1333): lib/config now rejects a network/issuer/
+    // Horizon combination that doesn't match, so switching the network under
+    // test means switching these together too.
+    vi.stubEnv(
+      'NEXT_PUBLIC_USDC_ISSUER',
+      'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5'
+    );
+    vi.stubEnv('NEXT_PUBLIC_HORIZON_URL', 'https://horizon-testnet.stellar.org');
+    vi.resetModules();
+    const testnetOfframp = await import('@/lib/mcp/offramp');
+
+    const fromXDRSpy = vi.spyOn(TransactionBuilder, 'fromXDR');
+
+    const kp = Keypair.random();
+    const intent = {
+      type: 'offramp' as const,
+      sourceAsset: 'NGNT',
+      destinationAsset: 'NGN',
+      amount: '100',
+      sender: kp.publicKey(),
+      recipient: 'recipient-123',
+    };
+    const { unsignedEnvelope, unsignedTx } = await testnetOfframp.prepareIntent(intent);
+    const signature = Buffer.from(
+      kp.sign(Buffer.from(unsignedEnvelope.intentHash, 'utf8'))
+    ).toString('base64');
+    const tx = TransactionBuilder.fromXDR(unsignedTx, Networks.TESTNET);
+    tx.sign(kp);
+
+    submitTransaction.mockResolvedValueOnce({
+      hash: 'b'.repeat(64),
+      ledger: 1,
+      successful: true,
+      envelope_xdr: '',
+      result_xdr: '',
+      result_meta_xdr: '',
+      paging_token: '',
+    });
+
+    await testnetOfframp.executeIntent({ unsignedEnvelope, signature, signedTx: tx.toXDR() });
+
+    // executeIntent's own fromXDR call (there is exactly one signed-tx parse
+    // per invocation) must use the configured testnet passphrase.
+    expect(fromXDRSpy).toHaveBeenCalledWith(tx.toXDR(), Networks.TESTNET);
+    fromXDRSpy.mockRestore();
+  });
+
+  it('rejects a transaction signed for mainnet when the configured network is testnet', async () => {
+    vi.stubEnv('NEXT_PUBLIC_STELLAR_NETWORK', 'testnet');
+    // Canonical testnet pinning (#1333): lib/config now rejects a network/issuer/
+    // Horizon combination that doesn't match, so switching the network under
+    // test means switching these together too.
+    vi.stubEnv(
+      'NEXT_PUBLIC_USDC_ISSUER',
+      'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5'
+    );
+    vi.stubEnv('NEXT_PUBLIC_HORIZON_URL', 'https://horizon-testnet.stellar.org');
+    vi.resetModules();
+    const testnetOfframp = await import('@/lib/mcp/offramp');
+
+    const kp = Keypair.random();
+    const intent = {
+      type: 'offramp' as const,
+      sourceAsset: 'NGNT',
+      destinationAsset: 'NGN',
+      amount: '100',
+      sender: kp.publicKey(),
+      recipient: 'recipient-123',
+    };
+    const { unsignedEnvelope, unsignedTx } = await testnetOfframp.prepareIntent(intent);
+    const signature = Buffer.from(
+      kp.sign(Buffer.from(unsignedEnvelope.intentHash, 'utf8'))
+    ).toString('base64');
+
+    // An agent that (incorrectly) assumes mainnet signs the same envelope
+    // against Networks.PUBLIC instead of the deployment's configured testnet
+    // passphrase — the exact bug this issue fixes, from the other side. The
+    // resulting signature is bound to the wrong network id, which Horizon
+    // rejects at submission (tx_bad_auth); the tool must surface that as an
+    // OfframpToolError rather than swallowing it.
+    const mainnetTx = TransactionBuilder.fromXDR(unsignedTx, Networks.PUBLIC);
+    mainnetTx.sign(kp);
+
+    submitTransaction.mockRejectedValueOnce({
+      response: { data: { extras: { result_codes: { transaction: ['tx_bad_auth'] } } } },
+    });
+
+    await expect(
+      testnetOfframp.executeIntent({ unsignedEnvelope, signature, signedTx: mainnetTx.toXDR() })
+    ).rejects.toBeInstanceOf(testnetOfframp.OfframpToolError);
+  });
+});
