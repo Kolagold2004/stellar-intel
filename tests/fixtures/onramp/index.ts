@@ -22,6 +22,7 @@ import zeam from './zeam.json';
 import aps from './aps.json';
 import bitnovo from './bitnovo.json';
 import perahub from './perahub.json';
+import clpx from './clpx.json';
 
 export interface OnrampDepositCapture {
   _comment: string;
@@ -57,6 +58,7 @@ export const ONRAMP_DEPOSIT_CAPTURES: Record<string, OnrampDepositCapture> = {
   aps,
   bitnovo,
   perahub,
+  clpx,
 };
 
 /** Anchors whose registered asset can actually be deposited today, per the capture above. */

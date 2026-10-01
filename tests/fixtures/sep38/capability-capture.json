@@ -54,6 +54,11 @@
       "homeDomain": "stellar.perahub.com.ph",
       "tomlHttp": 200,
       "anchorQuoteServer": null
+    },
+    "clpx": {
+      "homeDomain": "kbtrading.org",
+      "tomlHttp": 200,
+      "anchorQuoteServer": null
     }
   }
 }
