@@ -743,3 +743,56 @@ export interface Sep12CustomerResponse {
   provided_fields?: Record<string, Sep12CustomerField>;
   message?: string;
 }
+
+// ─── Listed anchors ──────────────────────────────────────────────────────────
+
+/**
+ * Why an operator is tracked without being routable. `issuer`: stellar.toml
+ * publishes assets but no SEP-6/SEP-24 rail. `crypto-rails`: SEP-6/SEP-24 rails
+ * exist, but every asset on them is a crypto asset with no fiat payout.
+ */
+export type ListedAnchorKind = 'issuer' | 'crypto-rails';
+
+/** The SEP-1 `anchor_asset_type` values. */
+export type Sep1AnchorAssetType =
+  'fiat' | 'crypto' | 'nft' | 'stock' | 'bond' | 'commodity' | 'realestate' | 'other';
+
+/** One asset an operator issues, as published in its stellar.toml `[[CURRENCIES]]`. */
+export interface ListedAsset {
+  code: string;
+  issuer: string;
+  /** Mirrors the toml `anchor_asset_type`; `null` when the toml omits it. */
+  anchorAssetType: Sep1AnchorAssetType | null;
+  /** Mirrors the toml `anchor_asset`; `null` when the toml omits it. */
+  anchorAsset: string | null;
+}
+
+/**
+ * A SEP-6/SEP-24 rail of a `crypto-rails` operator. The asset lists are the codes
+ * whose `enabled === true` in that rail's `/info` `deposit` / `withdraw` maps;
+ * `withdrawTypes` is the sorted union of `types` keys across enabled withdraw assets.
+ */
+export interface ListedCryptoRail {
+  sep: 'sep6' | 'sep24';
+  transferServer: string;
+  depositAssets: string[];
+  withdrawAssets: string[];
+  withdrawTypes: string[];
+}
+
+/** A hand-curated operator that is tracked and shown but never routed. */
+export interface ListedAnchor {
+  id: string;
+  name: string;
+  kind: ListedAnchorKind;
+  /** `domains[0]` is the domain the fixture was taken from. */
+  domains: string[];
+  orgUrl: string | null;
+  /** `YYYY-MM-DD` date the operator's toml was last checked. */
+  verifiedAt: string;
+  assets: ListedAsset[];
+  cryptoRails?: ListedCryptoRail[];
+  /** Id of an `ANCHORS` entry run by the same operator (e.g. MoneyGram's issuer domain → `moneygram`). */
+  registeredAnchorId?: string;
+  note?: string;
+}
