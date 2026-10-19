@@ -7,8 +7,36 @@
  */
 import { test, expect } from '@playwright/test';
 
+const mockRatesResponse = {
+  corridorId: 'usdc-ngn',
+  rates: [
+    {
+      anchorId: 'cowrie',
+      anchorName: 'Cowrie',
+      corridorId: 'usdc-ngn',
+      fee: 2,
+      feeType: 'flat',
+      exchangeRate: 1580,
+      totalReceived: 154840,
+      source: 'sep24-fee',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    },
+  ],
+  pending: [],
+  bestRateId: 'cowrie',
+  errors: [],
+};
+
 test.describe('[#104] keyboard-only navigation', () => {
   test.beforeEach(async ({ page }) => {
+    // Intercept /api/rates to supply deterministic rate data and prevent real anchor network calls
+    await page.route('/api/rates**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockRatesResponse),
+      })
+    );
     await page.goto('/offramp');
     // /offramp polls Freighter every 5s and refreshes rates on a timer, so the
     // network never goes idle — wait for the heading, as smoke.spec.ts does.
@@ -32,7 +60,7 @@ test.describe('[#104] keyboard-only navigation', () => {
   // ── CorridorSelector ────────────────────────────────────────────────────────
 
   test('Tab reaches CorridorSelector and ArrowDown changes corridor', async ({ page }) => {
-    const select = page.locator('select').first();
+    const select = page.locator('#corridor-select');
 
     let reached = false;
     for (let i = 0; i < 12; i++) {
@@ -50,7 +78,7 @@ test.describe('[#104] keyboard-only navigation', () => {
     await page.keyboard.press('ArrowDown');
     const after = await select.inputValue();
     // Value must be a valid corridor id and may have changed
-    expect(after).toMatch(/^usdc-/);
+    expect(after).toMatch(/^[a-z0-9]+-[a-z]{3}$/);
     // Different corridor selected (or wrapped around — either is valid)
     void before; // suppress unused warning; change may or may not occur on single press
   });
@@ -103,21 +131,8 @@ test.describe('[#104] keyboard-only navigation', () => {
   // ── Rate table ──────────────────────────────────────────────────────────────
 
   test('Off-ramp buttons in rate table are Tab-reachable', async ({ page }) => {
-    // Wait up to 15 s for rates to load; skip if API is unavailable in test env.
-    // `disabled: false` matters: with no rates the table still renders its
-    // off-ramp buttons in a disabled state, and a disabled button is correctly
-    // not focusable -- the old guard checked only visibility, matched one of
-    // those, and then failed asserting focus on an element that must not take it.
     const offRampBtn = page.getByRole('button', { name: /off-ramp/i, disabled: false }).first();
-    const appeared = await offRampBtn
-      .waitFor({ state: 'visible', timeout: 15_000 })
-      .then(() => true)
-      .catch(() => false);
-
-    if (!appeared) {
-      test.skip();
-      return;
-    }
+    await expect(offRampBtn).toBeVisible();
 
     await offRampBtn.focus();
     await expect(offRampBtn).toBeFocused();

@@ -1,0 +1,159 @@
+{
+  "capturedAt": "2026-10-06T05:24:44.030Z",
+  "capturedFrom": {
+    "method": "POST",
+    "url": "https://api.soroswap.finance/quote?network=mainnet"
+  },
+  "request": {
+    "assetIn": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+    "assetOut": "CAUIKL3IYGMERDRUN6YSCLWVAKIFG5Q4YJHUKM4S4NJZQIA3BAS6OJPK",
+    "amount": "10000000",
+    "tradeType": "EXACT_IN",
+    "protocols": ["soroswap", "phoenix", "aqua"]
+  },
+  "status": 201,
+  "body": {
+    "assetIn": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+    "assetOut": "CAUIKL3IYGMERDRUN6YSCLWVAKIFG5Q4YJHUKM4S4NJZQIA3BAS6OJPK",
+    "tradeType": "EXACT_IN",
+    "amountIn": "10000000",
+    "amountOut": "27669888437",
+    "otherAmountThreshold": "27531538994",
+    "priceImpactPct": "0.06",
+    "platform": "aggregator",
+    "routePlan": [
+      {
+        "swapInfo": {
+          "protocol": "aqua",
+          "path": [
+            "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+            "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV",
+            "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+            "CAUIKL3IYGMERDRUN6YSCLWVAKIFG5Q4YJHUKM4S4NJZQIA3BAS6OJPK"
+          ]
+        },
+        "percent": "35.00"
+      },
+      {
+        "swapInfo": {
+          "protocol": "aqua",
+          "path": [
+            "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+            "CDFZUVS5YNLXU7VENKOUDEOHCJGKQNVUBWD7KMN6E7ZROKPYPFLRUJFG",
+            "CAUIKL3IYGMERDRUN6YSCLWVAKIFG5Q4YJHUKM4S4NJZQIA3BAS6OJPK"
+          ]
+        },
+        "percent": "65.00"
+      }
+    ],
+    "rawTrade": {
+      "amountIn": "9990000",
+      "amountOutMin": "27531538994",
+      "distribution": [
+        {
+          "protocol_id": "aqua",
+          "path": [
+            "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+            "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV",
+            "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+            "CAUIKL3IYGMERDRUN6YSCLWVAKIFG5Q4YJHUKM4S4NJZQIA3BAS6OJPK"
+          ],
+          "parts": 4,
+          "is_exact_in": true,
+          "poolIds": [
+            "CAJAQRYP5NQKLK6DJNTI4AVH3MXL3GYU7LYKT7JWMMRD7PFNF64RV6BM",
+            "CATUJXDUO7SSSTAKSUV5YU6RSTB4B5AVIHQDV26QTCXOB46T6SLMWNMY",
+            "CDE57N6XTUPBKYYDGQMXX7E7SLNOLFY3JEQB4MULSMR2AKTSAENGX2HC"
+          ],
+          "hops": [
+            {
+              "poolId": "CAJAQRYP5NQKLK6DJNTI4AVH3MXL3GYU7LYKT7JWMMRD7PFNF64RV6BM",
+              "protocol": "aqua",
+              "tokenIn": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+              "tokenOut": "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV",
+              "amountIn": "3496500",
+              "amountOut": "3144119",
+              "feeBps": 1,
+              "poolHash": "d4209c37743f61bccfda55e3236177791e593ef43acefba4c2eaba0b1195add4"
+            },
+            {
+              "poolId": "CATUJXDUO7SSSTAKSUV5YU6RSTB4B5AVIHQDV26QTCXOB46T6SLMWNMY",
+              "protocol": "soroswap",
+              "tokenIn": "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV",
+              "tokenOut": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+              "amountIn": "3144119",
+              "amountOut": "16229456",
+              "feeBps": 30
+            },
+            {
+              "poolId": "CDE57N6XTUPBKYYDGQMXX7E7SLNOLFY3JEQB4MULSMR2AKTSAENGX2HC",
+              "protocol": "aqua",
+              "tokenIn": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+              "tokenOut": "CAUIKL3IYGMERDRUN6YSCLWVAKIFG5Q4YJHUKM4S4NJZQIA3BAS6OJPK",
+              "amountIn": "16229456",
+              "amountOut": "9696664099",
+              "feeBps": 10,
+              "poolHash": "b2e02fcfca6c96f8ad5cbd84e7784a777b36d9c96a2459402c4f458462aab7f0"
+            }
+          ],
+          "share": "3496500"
+        },
+        {
+          "protocol_id": "aqua",
+          "path": [
+            "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+            "CDFZUVS5YNLXU7VENKOUDEOHCJGKQNVUBWD7KMN6E7ZROKPYPFLRUJFG",
+            "CAUIKL3IYGMERDRUN6YSCLWVAKIFG5Q4YJHUKM4S4NJZQIA3BAS6OJPK"
+          ],
+          "parts": 6,
+          "is_exact_in": true,
+          "poolIds": [
+            "CAJAQRYP5NQKLK6DJNTI4AVH3MXL3GYU7LYKT7JWMMRD7PFNF64RV6BM",
+            "CD74JDJIRBMCKPI5LV5C4A7L4NIPCLJ3VOVYILFFXF3TSTALPOLY7CHC"
+          ],
+          "poolHashes": [
+            "d4209c37743f61bccfda55e3236177791e593ef43acefba4c2eaba0b1195add4",
+            "24f9c991c44acf33fff5f44031c40385d235dc212d7379e824ba3db1c35371f3"
+          ],
+          "hops": [
+            {
+              "poolId": "CAJAQRYP5NQKLK6DJNTI4AVH3MXL3GYU7LYKT7JWMMRD7PFNF64RV6BM",
+              "protocol": "aqua",
+              "tokenIn": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+              "tokenOut": "CDFZUVS5YNLXU7VENKOUDEOHCJGKQNVUBWD7KMN6E7ZROKPYPFLRUJFG",
+              "amountIn": "6493500",
+              "amountOut": "6526324",
+              "feeBps": 1,
+              "poolHash": "d4209c37743f61bccfda55e3236177791e593ef43acefba4c2eaba0b1195add4"
+            },
+            {
+              "poolId": "CD74JDJIRBMCKPI5LV5C4A7L4NIPCLJ3VOVYILFFXF3TSTALPOLY7CHC",
+              "protocol": "aqua",
+              "tokenIn": "CDFZUVS5YNLXU7VENKOUDEOHCJGKQNVUBWD7KMN6E7ZROKPYPFLRUJFG",
+              "tokenOut": "CAUIKL3IYGMERDRUN6YSCLWVAKIFG5Q4YJHUKM4S4NJZQIA3BAS6OJPK",
+              "amountIn": "6526324",
+              "amountOut": "17973224338",
+              "feeBps": 10,
+              "poolHash": "24f9c991c44acf33fff5f44031c40385d235dc212d7379e824ba3db1c35371f3"
+            }
+          ],
+          "share": "6493500"
+        }
+      ]
+    }
+  },
+  "responseHeaders": {
+    "access-control-allow-origin": "*",
+    "content-length": "3713",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Tue, 06 Oct 2026 05:24:52 GMT",
+    "etag": "W/\"e81-IK00Ff8Fpkrduew+WvHLDH0kOmY\"",
+    "server": "Google Frontend",
+    "x-cloud-trace-context": "9e371fb43f2faa534ffdcd2d9448cdbc",
+    "x-correlation-id": "9c3bf46c-a6e5-43e1-8ba7-9799bcc454ea",
+    "x-powered-by": "Express",
+    "x-ratelimit-limit": "5",
+    "x-ratelimit-remaining": "4",
+    "x-ratelimit-reset": "1"
+  }
+}

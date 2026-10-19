@@ -1,0 +1,21 @@
+# Source: https://mauaccounts.net/.well-known/stellar.toml (fetched 2026-10-15)
+[DOCUMENTATION]
+ORG_NAME = "MAU Accounts DAO"
+ORG_URL = "https://mauaccounts.net"
+
+[[CURRENCIES]]
+code = "MAU"
+issuer = "GABL7PXSAV4W4L32PI6E46HLLSMTEUKRDUMAY2Q6JXITNV2QCWABRAOB"
+anchor_asset_type = "other"
+
+[[CURRENCIES]]
+code = "USDMAU"
+issuer = "GABL7PXSAV4W4L32PI6E46HLLSMTEUKRDUMAY2Q6JXITNV2QCWABRAOB"
+anchor_asset_type = "fiat"
+anchor_asset = "USD"
+
+[[CURRENCIES]]
+code = "PKOIN"
+issuer = "GABL7PXSAV4W4L32PI6E46HLLSMTEUKRDUMAY2Q6JXITNV2QCWABRAOB"
+anchor_asset_type = "crypto"
+anchor_asset = "PKOIN"

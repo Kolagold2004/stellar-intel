@@ -34,11 +34,11 @@ Soroban smart contracts enable custom account contracts (smart wallets) that can
 - **Hash-preimage signers** — reveal a secret to authorise.
 - **Sponsored transactions / fee-bumping** — a third party can pay fees for a pre-authorised transaction.
 
-**Relevant standard:** [SEP-41](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0041.md) (Soroban Smart Wallet Standard) defines a baseline interface for smart wallets, including `__check_auth` and signer introspection.
+**Relevant standard:** [SEP-41](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0041.md) is the Soroban Token Interface. For smart-wallet account interfaces (including `__check_auth` and signer introspection), no SEP number is cited.
 
-**Limitation:** SEP-41 is still a draft. No mainstream wallet (Freighter, Lobstr) exposes a UI for configuring custom signer policies today. Adoption requires:
+**Limitation:** No mainstream wallet (Freighter, Lobstr) exposes a UI for configuring custom signer policies today. Adoption requires:
 
-1. The ecosystem to converge on SEP-41 (or an equivalent).
+1. The ecosystem to converge on a smart-wallet standard (no SEP number is cited).
 2. Wallets to implement a policy-configuration UI.
 3. A relayer / keeper network to submit the recurring intents on schedule.
 
@@ -68,14 +68,14 @@ This is not standardised for Stellar today but is _buildable_ as a custom Soroba
 
 ## 3. Wallet support matrix
 
-| Wallet           | SEP-10 support | Smart wallet (SEP-41) | Pre-auth txn UI | Recurring / policy UI | Notes                                                                                 |
-| ---------------- | -------------- | --------------------- | --------------- | --------------------- | ------------------------------------------------------------------------------------- |
-| **Freighter**    | ✅ Full        | ❌ Not exposed        | ❌ No UI        | ❌ No UI              | Active development on Soroban support; policy UI is on their roadmap but unscheduled. |
-| **Lobstr**       | ✅ Full        | ❌ Not exposed        | ❌ No UI        | ❌ No UI              | Vault feature supports time-locked transactions but not recurring policies.           |
-| **xBull**        | ✅ Full        | ❌ Not exposed        | ❌ No UI        | ❌ No UI              | Similar to Freighter; Soroban support is experimental.                                |
-| **Albedo**       | ❌ (uses own)  | ❌                    | ❌              | ❌                    | No Soroban wallet support yet.                                                        |
-| **Rabet**        | ✅ Full        | ❌ Not exposed        | ❌ No UI        | ❌ No UI              | Minimal Soroban support.                                                              |
-| **Solar Wallet** | ❌             | ❌                    | ❌              | ❌                    | Desktop-only; no Soroban wallet support.                                              |
+| Wallet           | SEP-10 support | Smart wallet (no SEP cited) | Pre-auth txn UI | Recurring / policy UI | Notes                                                                                 |
+| ---------------- | -------------- | --------------------------- | --------------- | --------------------- | ------------------------------------------------------------------------------------- |
+| **Freighter**    | ✅ Full        | ❌ Not exposed              | ❌ No UI        | ❌ No UI              | Active development on Soroban support; policy UI is on their roadmap but unscheduled. |
+| **Lobstr**       | ✅ Full        | ❌ Not exposed              | ❌ No UI        | ❌ No UI              | Vault feature supports time-locked transactions but not recurring policies.           |
+| **xBull**        | ✅ Full        | ❌ Not exposed              | ❌ No UI        | ❌ No UI              | Similar to Freighter; Soroban support is experimental.                                |
+| **Albedo**       | ❌ (uses own)  | ❌                          | ❌              | ❌                    | No Soroban wallet support yet.                                                        |
+| **Rabet**        | ✅ Full        | ❌ Not exposed              | ❌ No UI        | ❌ No UI              | Minimal Soroban support.                                                              |
+| **Solar Wallet** | ❌             | ❌                          | ❌              | ❌                    | Desktop-only; no Soroban wallet support.                                              |
 
 **Key takeaway:** No wallet today offers a recurring pre-authorisation UI. SEP-10 JWTs are the only production-ready mechanism.
 
@@ -108,7 +108,7 @@ This is not standardised for Stellar today but is _buildable_ as a custom Soroba
 
 **Approach: Soroban smart-wallet signer policy** (§2.2)
 
-- Wait for SEP-41 to mature and wallets to ship a policy-configuration UI.
+- Wait for smart-wallet standards (no SEP number is cited) to mature and wallets to ship a policy-configuration UI.
 - Once available, deploy a "recurring intent signer" Soroban contract that accepts an off-chain signed intent only within the policy parameters (corridor, max amount, interval, total cap).
 - A relayer (operated by Stellar Intel or a third-party keeper) submits the intent each period; the contract checks the policy before authorising.
 
@@ -120,7 +120,12 @@ This is not standardised for Stellar today but is _buildable_ as a custom Soroba
 
 The sign-once execution engine (the follow-up implementation issue) should:
 
-1. **Phase 1 (now):** Build the SEP-10 JWT delegation path — add a `recurring_intents` table to the database, a JWT scope claim validator, and a cron-like scheduler.
-2. **Phase 2 (future):** When SEP-41 wallet support lands, add an optional Soroban-based signer policy backend and let the user choose between the two.
+1. **Phase 1 (implemented behind `NEXT_PUBLIC_RECURRING_INTENTS` in `lib/recurring/`):**
+   The SEP-10 delegation engine is implemented:
+   - Zod schemas and types (`types/recurring.ts` / `lib/recurring/index.ts`): `RecurringIntent`, `RecurringAuthorization`, `RecurringExecution`, and `Cadence`.
+   - Cadence engine (`lib/recurring/cadence.ts`): `computeNextExecutionAt`, `isDue`, `isStopDatePassed`, `isMaxCyclesReached`, and `isValidCadence`.
+   - Persistent store (`lib/recurring/store.ts`): `initRecurringStore`, `registerRecurringIntent`, `updateRecurringIntent`, `listDueIntents`, `recordExecution`.
+   - Cycle scheduler (`lib/recurring/scheduler.ts`): `evaluateCycle`, `executeCycle`, `evaluateAllDueIntents`, `compareDecimals`, `computeSlippageBps`.
+2. **Phase 2 (future):** When smart-wallet support (no SEP number is cited) lands, add an optional Soroban-based signer policy backend and let the user choose between the two.
 
 This separation lets the product ship recurring intents _now_ while keeping the door open to a fully non-custodial path later.

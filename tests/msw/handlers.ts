@@ -13,7 +13,7 @@ export const cowrieHandlers = [
   http.get('https://cowrie.exchange/sep6/info', () => {
     return HttpResponse.json({
       withdraw: {
-        USDC: {
+        NGNT: {
           enabled: true,
           fee_fixed: 2,
           fee_percent: 0,

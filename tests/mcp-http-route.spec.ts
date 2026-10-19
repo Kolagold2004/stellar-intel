@@ -40,7 +40,16 @@ function mcpRequest(body: unknown, headers: Record<string, string> = {}): NextRe
  * a tool silently disappearing from the remote surface fails a test rather than
  * going unnoticed.
  */
-const EXPECTED_TOOLS = ['intel.offramp.quote', 'intel.offramp.prepare', 'intel.execute'];
+const EXPECTED_TOOLS = [
+  'intel.offramp.quote',
+  'intel.offramp.prepare',
+  'intel.execute',
+  'intel.anchor.reputation',
+  'intel.anchor.health',
+  'intel.probe.coverage',
+  'intel.leaderboard',
+  'intel.corridors',
+];
 
 const INITIALIZE = {
   jsonrpc: '2.0',
@@ -76,7 +85,7 @@ describe('POST /api/mcp', () => {
     expect(body.error).toBeUndefined();
     expect(body.result?.serverInfo).toBeDefined();
     expect(body.result?.protocolVersion).toBeDefined();
-  }, 30_000);
+  });
 
   it('serves a second request — the transport is rebuilt per invocation', async () => {
     // A stateless WebStandardStreamableHTTPServerTransport throws
@@ -93,7 +102,7 @@ describe('POST /api/mcp', () => {
     const body = await readJsonRpc(second);
     expect(body.error).toBeUndefined();
     expect(body.result?.serverInfo).toBeDefined();
-  }, 30_000);
+  });
 
   it('exposes the same tools as the stdio server', async () => {
     // One createServer() backs both transports, so this is really asserting
@@ -108,17 +117,17 @@ describe('POST /api/mcp', () => {
     const names = tools.map((t) => t.name);
 
     expect(names).toEqual(expect.arrayContaining(EXPECTED_TOOLS));
-  }, 30_000);
+  });
 
   it('rejects a request that does not accept both content types', async () => {
     const response = await POST(mcpRequest(INITIALIZE, { accept: 'application/json' }));
     expect(response.status).toBe(406);
-  }, 30_000);
+  });
 
   it('rejects a body that is not JSON', async () => {
     const response = await POST(mcpRequest(INITIALIZE, { 'content-type': 'text/plain' }));
     expect(response.status).toBe(415);
-  }, 30_000);
+  });
 });
 
 describe('the endpoint is POST-only', () => {

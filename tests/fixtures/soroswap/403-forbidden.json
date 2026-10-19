@@ -1,0 +1,24 @@
+{
+  "capturedAt": "2026-09-27T20:58:34Z",
+  "capturedFrom": {
+    "method": "POST",
+    "url": "https://api.soroswap.finance/quote?network=mainnet"
+  },
+  "status": 403,
+  "body": {
+    "message": "Forbidden resource",
+    "error": "Forbidden",
+    "statusCode": 403
+  },
+  "responseHeaders": {
+    "access-control-allow-origin": "*",
+    "content-length": "69",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Sun, 27 Sep 2026 20:58:34 GMT",
+    "etag": "W/\"45-MZJWZc+Y+RUbHpnhz2B2Vipii24\"",
+    "server": "Google Frontend",
+    "x-cloud-trace-context": "be1af4d7cd20fbf17cca854b0bcbc5fe",
+    "x-correlation-id": "46db1325-164b-4dcb-9cc0-e0e22ab607cb",
+    "x-powered-by": "Express"
+  }
+}

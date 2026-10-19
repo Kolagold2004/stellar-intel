@@ -1,0 +1,12 @@
+# Source: https://ixinium.io/.well-known/stellar.toml (fetched 2026-10-15)
+[DOCUMENTATION]
+ORG_NAME = "Baltic Representative Office"
+ORG_URL = "https://ixinium.io"
+
+[[CURRENCIES]]
+code = "XXA"
+issuer = "GC4HS4CQCZULIOTGLLPGRAAMSBDLFRR6Y7HCUQG66LNQDISXKIXXADIM"
+
+[[CURRENCIES]]
+code = "IXAT"
+issuer = "GCSECMDTZDHAUCTZJO4Z3BGAGDKKV77TBGPBWPOAJUE6Z5N5JEU4CY4R"

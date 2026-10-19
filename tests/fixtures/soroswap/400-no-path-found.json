@@ -1,0 +1,28 @@
+{
+  "capturedAt": "2026-09-27T20:58:36Z",
+  "capturedFrom": {
+    "method": "POST",
+    "url": "https://api.soroswap.finance/quote?network=mainnet"
+  },
+  "status": 400,
+  "body": {
+    "title": "No path found",
+    "detail": "No path found",
+    "extra": {},
+    "error": "Quote Failed"
+  },
+  "responseHeaders": {
+    "access-control-allow-origin": "*",
+    "content-length": "84",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Sun, 27 Sep 2026 20:58:35 GMT",
+    "etag": "W/\"54-y09roegGGsJoi5sTOjCueVY2N60\"",
+    "server": "Google Frontend",
+    "x-cloud-trace-context": "230270739405ecf94f33ff03a5192c10",
+    "x-correlation-id": "c46df982-ab1d-49eb-a0dc-9cde9b8aa836",
+    "x-powered-by": "Express",
+    "x-ratelimit-limit": "5",
+    "x-ratelimit-remaining": "4",
+    "x-ratelimit-reset": "1"
+  }
+}

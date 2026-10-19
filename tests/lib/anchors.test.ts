@@ -6,6 +6,7 @@ import {
   ANCHOR_HOME_DOMAINS,
   getAnchorById,
   getAnchorsByCorridorId,
+  getDepositCapableAnchors,
   getCorridorById,
   isValidCorridorId,
   transferCapable,
@@ -33,9 +34,9 @@ describe('ANCHORS', () => {
     expect(mg.corridors).toContain('usdc-brl');
   });
 
-  it('Cowrie is only in usdc-ngn', () => {
+  it('Cowrie is only in ngnt-ngn', () => {
     const cowrie = ANCHORS.find((a) => a.id === 'cowrie')!;
-    expect(cowrie.corridors).toEqual(['usdc-ngn']);
+    expect(cowrie.corridors).toEqual(['ngnt-ngn']);
   });
 
   it('Anclap covers ars-ars and pen-pen', () => {
@@ -102,13 +103,22 @@ describe('getAnchorById', () => {
 });
 
 describe('getAnchorsByCorridorId', () => {
-  it('returns MoneyGram, Cowrie, and NGNC for usdc-ngn', () => {
-    const anchors = getAnchorsByCorridorId('usdc-ngn');
-    const ids = anchors.map((a) => a.id);
+  it('returns Cowrie for ngnt-ngn', () => {
+    const ids = getAnchorsByCorridorId('ngnt-ngn').map((a) => a.id);
+    expect(ids).toEqual(['cowrie']);
+  });
+
+  it('returns MoneyGram but not Cowrie or NGNC for usdc-ngn', () => {
+    const ids = getAnchorsByCorridorId('usdc-ngn').map((a) => a.id);
     expect(ids).toContain('moneygram');
-    expect(ids).toContain('cowrie');
-    expect(ids).toContain('ngnc');
-    expect(ids).toHaveLength(3);
+    expect(ids).not.toContain('cowrie');
+    expect(ids).not.toContain('ngnc');
+  });
+
+  it('returns NGNC for ngnc-ngn', () => {
+    const anchors = getAnchorsByCorridorId('ngnc-ngn');
+    const ids = anchors.map((a) => a.id);
+    expect(ids).toEqual(['ngnc']);
   });
 
   it('returns MoneyGram for usdc-kes', () => {
@@ -137,6 +147,29 @@ describe('getAnchorsByCorridorId', () => {
 
   it('returns an empty array for an unknown corridor', () => {
     expect(getAnchorsByCorridorId('usdc-xyz')).toEqual([]);
+  });
+});
+
+describe('getDepositCapableAnchors', () => {
+  it('excludes ntokens for brl-brl while getAnchorsByCorridorId includes it', () => {
+    const allBrlAnchors = getAnchorsByCorridorId('brl-brl');
+    expect(allBrlAnchors.map((a) => a.id)).toContain('ntokens');
+
+    const depositCapableBrlAnchors = getDepositCapableAnchors('brl-brl');
+    expect(depositCapableBrlAnchors.map((a) => a.id)).not.toContain('ntokens');
+    expect(depositCapableBrlAnchors).toEqual([]);
+  });
+
+  it('returns deposit-capable anchors for usdc-ngn', () => {
+    const depositCapable = getDepositCapableAnchors('usdc-ngn');
+    const ids = depositCapable.map((a) => a.id);
+    expect(ids).toContain('moneygram');
+    expect(ids).not.toContain('cowrie'); // cowrie now serves ngnt-ngn (#1274)
+    expect(ids).not.toContain('ngnc'); // ngnc now serves ngnc-ngn, not usdc-ngn (#1275)
+  });
+
+  it('returns an empty array for an unknown corridor', () => {
+    expect(getDepositCapableAnchors('usdc-xyz')).toEqual([]);
   });
 });
 
@@ -256,7 +289,7 @@ describe('getAnchorsByCorridorId excludes non-routable anchors', () => {
     const results = getAnchorsByCorridorId('usdc-ngn');
     const ids = results.map((a) => a.id);
     expect(ids).toContain('moneygram');
-    expect(ids).toContain('cowrie');
+    expect(ids).not.toContain('cowrie');
   });
 
   it('excludes a SEP-31-only anchor even if its corridors field names the corridor', () => {

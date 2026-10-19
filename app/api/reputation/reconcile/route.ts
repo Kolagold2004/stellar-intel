@@ -14,7 +14,12 @@ export const runtime = 'nodejs';
 // payment via Horizon, and backfills the actual delivered amount + rate. No request
 // body needed — the work list comes from the store, so a bare ping does the right thing.
 
-async function runReconciler(): Promise<{ updated: number; scanned: number; results: unknown[] }> {
+async function runReconciler(): Promise<{
+  updated: number;
+  scanned: number;
+  sourceMismatch: number;
+  results: unknown[];
+}> {
   const store = getReputationStore();
   const pending = await store.query({ pendingReconciliationOnly: true });
 
@@ -26,18 +31,33 @@ async function runReconciler(): Promise<{ updated: number; scanned: number; resu
     status: 'completed',
     stellarTransactionId: r.stellarTransactionId,
     quotedAmount: r.quotedAmount,
+    signerAccount: r.signerAccount,
   }));
 
-  const results = await reconcileReputationOutcomes(rows, async (row, update) => {
-    await store.markDelivered(row.id, {
-      deliveredAmount: update.deliveredAmount,
-      deliveredRate: update.deliveredRate ?? null,
-      reconciledAt: update.reconciledAt.toISOString(),
-    });
-  });
+  const results = await reconcileReputationOutcomes(
+    rows,
+    async (row, update) => {
+      await store.markDelivered(row.id, {
+        deliveredAmount: update.deliveredAmount,
+        deliveredRate: update.deliveredRate ?? null,
+        reconciledAt: update.reconciledAt.toISOString(),
+      });
+    },
+    {
+      // The Horizon payment's source account did not match the account that
+      // signed the intent hash — flag the row instead of scoring it silently.
+      onSourceMismatch: async (row) => {
+        await store.markDisputed(row.id, {
+          disputed: true,
+          disputedReason: 'payment source does not match signer',
+        });
+      },
+    }
+  );
 
   return {
     updated: results.filter((r) => r.status === 'updated').length,
+    sourceMismatch: results.filter((r) => r.status === 'source_mismatch').length,
     scanned: rows.length,
     results,
   };
@@ -57,7 +77,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const summary = await runReconciler();
-    logger.info({ event: 'reconcile_run', scanned: summary.scanned, updated: summary.updated });
+    logger.info({
+      event: 'reconcile_run',
+      scanned: summary.scanned,
+      updated: summary.updated,
+      sourceMismatch: summary.sourceMismatch,
+    });
     return NextResponse.json(summary);
   });
 }

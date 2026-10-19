@@ -1,6 +1,6 @@
 import { setupServer } from 'msw/node';
 import { cowrieHandlers } from './handlers';
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse, passthrough } from 'msw';
 
 const start = Date.now();
 const logReq = (label: string) => console.log(`[${Date.now() - start}ms] MSW: ${label}`);
@@ -61,14 +61,14 @@ ANCHOR_QUOTE_SERVER="https://cowrie.exchange/sep38"
     return HttpResponse.json({});
   }),
   // Catch-all to prevent ANY real network requests from hanging the test
-  http.get('*', ({ request }) => {
+  http.all('*', ({ request }) => {
     // Only bypass if it's localhost (e.g. MCP transport) or other necessary
     if (request.url.includes('localhost') || request.url.includes('127.0.0.1')) {
-      return; // Bypass
+      return passthrough();
     }
     logReq(`Catch-all 404 ${request.url}`);
     return HttpResponse.json({}, { status: 404 });
   })
 );
 
-server.listen({ onUnhandledRequest: 'bypass' });
+server.listen({ onUnhandledRequest: 'error' });

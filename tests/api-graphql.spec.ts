@@ -84,7 +84,7 @@ describe('POST /api/graphql — anchors', () => {
   it('filters anchors by corridorId using the same registry REST uses', async () => {
     const result = await run<{ anchors: Array<{ id: string }> }>(
       'query($c: ID) { anchors(corridorId: $c) { id } }',
-      { c: 'usdc-ngn' }
+      { c: 'ngnt-ngn' }
     );
     expect(result.errors).toBeUndefined();
     expect(result.data?.anchors.some((a) => a.id === 'cowrie')).toBe(true);

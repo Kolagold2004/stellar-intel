@@ -1,0 +1,9 @@
+# Source: https://gratz.io/.well-known/stellar.toml (fetched 2026-10-15)
+[DOCUMENTATION]
+ORG_NAME = "Gratz"
+ORG_URL = "https://gratz.io"
+
+[[CURRENCIES]]
+code = "GRAT"
+issuer = "GAJ7V3EMD3FRWAPBEJAP7EC4223XI5EACDZ46RFMY5DYOMCIMWEFR5II"
+anchor_asset_type = "crypto"

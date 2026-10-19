@@ -1,11 +1,17 @@
 import type { Anchor, AnchorRate, Corridor, RateComparison, Sep1TomlData } from '@/types';
-import { isAnchorAssetEnabled, USDC_ASSET } from '@/constants/anchors';
-import { getAnchorsByCorridorId, getCorridorById } from './anchors';
+import { isAnchorAssetEnabled } from '@/constants/anchors';
+import {
+  getAnchorsByCorridorId,
+  getCorridorAsset,
+  getCorridorById,
+  sep38AssetId,
+  type CorridorAsset,
+} from './anchors';
 import { resolveAnchor } from './sep1';
 import { assertSep38Capable, getSep38Price } from './sep38';
 import { getSep24Info } from './sep24';
-import { getSep6Info } from './sep6';
-import { getUsdFxRate } from '@/lib/fx/rates';
+import { getSep6Info, Sep6AssetDisabledError } from './sep6';
+import { getFxRate } from '@/lib/fx/rates';
 import { SepError, TimeoutError } from './errors';
 import { fetchReputationScores } from '@/lib/reputation/scores';
 
@@ -190,14 +196,17 @@ async function fetchPriceAcrossContexts(
 
 /**
  * Builds an *indicative* off-ramp estimate for an anchor that does not offer a
- * SEP-38 quote server: live USD→fiat reference rate applied to the net sold asset
- * after the anchor's own published SEP-24 withdraw fee. This is an estimate for
- * USD-pegged assets — the firm rate is set by the anchor inside the SEP-24
- * interactive flow at execution.
+ * SEP-38 quote server: live peg→fiat reference rate applied to the net sold asset
+ * after the anchor's own published SEP-24 withdraw fee. This is a peg-aware
+ * estimate — for USD-pegged assets (USDC) it behaves as before; for assets pegged
+ * to their own payout currency (e.g. BRL token → BRL) the rate is 1:1. The firm
+ * rate is set by the anchor inside the SEP-24 interactive flow at execution.
  */
 async function indicativeRate(
   anchor: Anchor,
   toml: Sep1TomlData,
+  asset: CorridorAsset,
+  pegCode: string,
   fiatCode: string,
   corridorId: string,
   amount: string,
@@ -215,18 +224,21 @@ async function indicativeRate(
       `${anchor.name} SEP-24 /info`,
       serverRatesConfig.sep24Info.retryAttempts
     ),
-    getUsdFxRate(fiatCode),
+    getFxRate(pegCode, fiatCode),
   ]);
 
-  const assetInfo = info.withdraw[anchor.assetCode];
+  let assetInfo = info.withdraw[asset.code];
+  if (!assetInfo && asset.issuer === null) {
+    assetInfo = info.withdraw['native'];
+  }
   if (!assetInfo || assetInfo.enabled === false) {
-    throw new Error(`anchor does not enable ${anchor.assetCode} withdrawals`);
+    throw new Error(`anchor does not enable ${asset.code} withdrawals`);
   }
 
   const feeFixed = assetInfo.fee_fixed ?? 0;
   const feePercent = assetInfo.fee_percent ?? 0;
   const netSellAmount = Math.max(0, sellAmount - feeFixed) * (1 - feePercent / 100);
-  const totalReceived = netSellAmount * fxRate; // USD-pegged assets treated 1:1 with USD
+  const totalReceived = netSellAmount * fxRate; // peg-aware: 1:1 for same-currency corridors
   const effectiveRate = sellAmount > 0 ? totalReceived / sellAmount : 0;
 
   if (!Number.isFinite(totalReceived) || totalReceived <= 0 || effectiveRate <= 0) {
@@ -254,14 +266,17 @@ function hasSep6(toml: Sep1TomlData): boolean {
 }
 
 /**
- * Builds an *indicative* off-ramp estimate for a SEP-6 anchor: live USD→fiat
- * reference rate applied to the net USDC after the anchor's SEP-6 fees from
- * GET /info. This is a Tier-3 fallback when neither SEP-38 nor SEP-24 are
- * available. The firm rate is set by the anchor at execution time.
+ * Builds an *indicative* off-ramp estimate for a SEP-6 anchor: live peg→fiat
+ * reference rate applied to the net sold asset after the anchor's SEP-6 fees
+ * from GET /info. This is a Tier-3 fallback when neither SEP-38 nor SEP-24 are
+ * available. For same-currency corridors (e.g. BRL token → BRL) the rate is
+ * 1:1. The firm rate is set by the anchor at execution time.
  */
 async function sep6IndicativeRate(
-  anchor: { id: string; name: string },
+  anchor: Anchor,
   toml: Sep1TomlData,
+  asset: CorridorAsset,
+  pegCode: string,
   fiatCode: string,
   corridorId: string,
   amount: string,
@@ -269,13 +284,22 @@ async function sep6IndicativeRate(
 ): Promise<AnchorRate> {
   const transferServer = toml.TRANSFER_SERVER!;
 
+  // Plain `withdraw` first; when the anchor disables USDC there but offers it
+  // via `withdraw-exchange` (Latamex's ARS/BRL corridors, #1296), retry once
+  // against that map. Fee semantics are the same either way, so the rate
+  // stays `source: 'sep6-fee'` — still indicative, not a firm quote.
   const [config, fxRate] = await Promise.all([
     withTimeout(
-      getSep6Info(transferServer, USDC_ASSET.code),
+      getSep6Info(transferServer, asset.code).catch((err) => {
+        if (err instanceof Sep6AssetDisabledError) {
+          return getSep6Info(transferServer, asset.code, { exchange: true });
+        }
+        throw err;
+      }),
       SEP6_INFO_TIMEOUT_MS,
       `${anchor.name} SEP-6 /info`
     ),
-    getUsdFxRate(fiatCode),
+    getFxRate(pegCode, fiatCode),
   ]);
 
   const feeFixed = config.feeFixed;
@@ -320,12 +344,24 @@ export async function fetchCorridorRates(
 ): Promise<ServerRatesResult> {
   const corridor = getCorridorById(corridorId); // throws on unknown corridor
   const anchors = getAnchorsByCorridorId(corridorId);
+  const asset = getCorridorAsset(corridorId);
 
   const buyAsset = `iso4217:${corridor.to}`;
   const sellAmount = Number(amount);
+  const sellAsset = sep38AssetId(asset);
 
   const rates: AnchorRate[] = [];
   const errors: AnchorRateError[] = [];
+
+  const ctx: CorridorQuoteContext = {
+    corridorId,
+    corridor,
+    asset,
+    sellAsset,
+    buyAsset,
+    amount,
+    sellAmount,
+  };
 
   await Promise.all(
     anchors.map(async (anchor) => {
@@ -338,17 +374,11 @@ export async function fetchCorridorRates(
       const anchorName = safeAnchorField(() => anchor.name, anchorId);
 
       try {
-        if (!isAnchorAssetEnabled(anchor.assetCode)) {
-          throw new Error(`${anchor.assetCode} rates are disabled by feature flag`);
+        if (!isAnchorAssetEnabled(asset.code)) {
+          throw new Error(`${asset.code} rates are disabled by feature flag`);
         }
 
-        const sellAsset = `stellar:${anchor.assetCode}:${anchor.assetIssuer}`;
-        await quoteAnchorOnCorridor(
-          anchor,
-          { corridorId, corridor, sellAsset, buyAsset, amount, sellAmount },
-          rates,
-          errors
-        );
+        await quoteAnchorOnCorridor(anchor, ctx, rates, errors);
       } catch (err) {
         errors.push({
           anchorId,
@@ -397,6 +427,7 @@ export async function fetchCorridorRates(
 interface CorridorQuoteContext {
   corridorId: string;
   corridor: Corridor;
+  asset: CorridorAsset;
   sellAsset: string;
   buyAsset: string;
   amount: string;
@@ -415,7 +446,7 @@ async function quoteAnchorOnCorridor(
   rates: AnchorRate[],
   errors: AnchorRateError[]
 ): Promise<void> {
-  const { corridorId, corridor, sellAsset, buyAsset, amount, sellAmount } = ctx;
+  const { corridorId, corridor, asset, sellAsset, buyAsset, amount, sellAmount } = ctx;
 
   let toml: Sep1TomlData;
   try {
@@ -435,6 +466,7 @@ async function quoteAnchorOnCorridor(
   }
 
   const reasons: string[] = [];
+  const isUnverifiedPayout = anchor.unverifiedCorridors?.includes(corridorId) ?? false;
 
   // Tier 1 — firm SEP-38 quote: the anchor's own live price. Preferred when
   // the anchor advertises a quote server.
@@ -472,6 +504,7 @@ async function quoteAnchorOnCorridor(
       totalReceived: buyAmount,
       source: 'sep38',
       updatedAt: new Date(),
+      ...(isUnverifiedPayout ? { unverifiedPayout: true as const } : {}),
     });
     return;
   } catch (err) {
@@ -482,7 +515,20 @@ async function quoteAnchorOnCorridor(
   // published SEP-24 withdraw fee. Differentiated per anchor by their fees;
   // the firm rate is confirmed by the anchor at execution time.
   try {
-    rates.push(await indicativeRate(anchor, toml, corridor.to, corridorId, amount, sellAmount));
+    const rate = await indicativeRate(
+      anchor,
+      toml,
+      asset,
+      corridor.fromPeg,
+      corridor.to,
+      corridorId,
+      amount,
+      sellAmount
+    );
+    if (isUnverifiedPayout) {
+      rate.unverifiedPayout = true;
+    }
+    rates.push(rate);
     return;
   } catch (err) {
     reasons.push(`Indicative: ${err instanceof Error ? err.message : String(err)}`);
@@ -493,9 +539,20 @@ async function quoteAnchorOnCorridor(
   // SEP-38 or SEP-24 (e.g. Cowrie on usdc-ngn).
   if (hasSep6(toml)) {
     try {
-      rates.push(
-        await sep6IndicativeRate(anchor, toml, corridor.to, corridorId, amount, sellAmount)
+      const rate = await sep6IndicativeRate(
+        anchor,
+        toml,
+        asset,
+        corridor.fromPeg,
+        corridor.to,
+        corridorId,
+        amount,
+        sellAmount
       );
+      if (isUnverifiedPayout) {
+        rate.unverifiedPayout = true;
+      }
+      rates.push(rate);
       return;
     } catch (err) {
       reasons.push(`SEP-6: ${err instanceof Error ? err.message : String(err)}`);

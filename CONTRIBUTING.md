@@ -138,7 +138,7 @@ Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`.
 
 ### Documentation
 
-- All documentation files in `docs/` must carry a `**Last reviewed:** YYYY-MM-DD` line near the top of the file (immediately after the main heading or header block).
+- All documentation files in `docs/` must carry a `**Last reviewed:** YYYY-MM-DD` line near the top of the file (immediately after the main heading or header block), except generated files (`docs/API_REFERENCE.md`).
 - Maintainers and contributors should update this date whenever making non-trivial documentation updates or re-verifying accuracy.
 
 ---
@@ -253,7 +253,7 @@ npm run build --workspace=@stellarintel/publisher
 - [ ] `npm run emit-llms-full` produces no diff, **or** the regenerated corpus is committed
 - [ ] Rust: `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test` pass for every crate touched
 - [ ] Python: `pytest` and `mypy` pass, and no generated file was hand-edited
-- [ ] Documentation files in `docs/` carry an updated `**Last reviewed:** YYYY-MM-DD` date
+- [ ] Documentation files in `docs/` carry an updated `**Last reviewed:** YYYY-MM-DD` date, except generated files (`docs/API_REFERENCE.md`)
 - [ ] No `isMock`, `// MOCK`, or hardcoded rate values added
 - [ ] New anchor entries include a verified `stellar.toml` domain
 - [ ] Exactly one `Closes #N` keyword — reference other issues without one
@@ -271,8 +271,8 @@ write PRs that auto-link correctly.
 
 | Prefix        | Range          | Purpose                                                                                                                                            |
 | ------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `#001–#250`   | Main tracker   | Wave-scoped engineering tickets (see `docs/ROADMAP.md`).                                                                                           |
-| `#B001–#B100` | Batch 2        | Supplementary issues from `issues-batch-2.md`.                                                                                                     |
+| `#NNN`        | Main tracker   | Plain `#NNN` GitHub issue numbers — wave-scoped engineering tickets (see `docs/ROADMAP.md`).                                                       |
+| `#B001–#B100` | Batch 2        | Supplementary issues (historical batch; tracked as GitHub issues).                                                                                 |
 | `#D001–D999`  | Doc/infra debt | Documentation gaps, infra improvements, and technical-debt tickets that don't fit a wave. Sometimes referenced as `#D047` inline in code comments. |
 | `#N/A`        | Meta           | Issues opened against the issue tracker itself (template improvements, workflow changes).                                                          |
 
@@ -296,7 +296,7 @@ Labels are the single source of truth for issue triage. They are defined in
 | **Type**       | `bug`, `feature`, `docs`, `chore`, `refactor`, `test`                                                                                          | What kind of change the issue represents. Every issue has exactly one type label. |
 | **State**      | `blocked`, `help-wanted`, `good-first-issue`, `design-review`, `needs-triage`                                                                  | Workflow status. Applied and removed as the issue progresses.                     |
 | **Difficulty** | `difficulty/good-first-issue`, `difficulty/intermediate`, `difficulty/hard`                                                                    | Estimated effort. Set by a maintainer during triage.                              |
-| **Wave**       | `wave/1.0`, `wave/2.0`, `wave/2.1`                                                                                                             | Which milestone the issue belongs to. Maps to `docs/ROADMAP.md`.                  |
+| **Wave**       | `wave/1.0`, `wave/1.1`, `wave/1.2`, `wave/1.3`, `wave/2.0`, `wave/2.1`, `wave/2.2`, `wave/2.3`                                                 | Which milestone the issue belongs to. Maps to `docs/ROADMAP.md`.                  |
 | **Epic**       | `epic/execution-layer`, `epic/reputation`, `epic/agents`, `epic/anchor-integration`, `epic/ui`, `epic/docs-community`                          | High-level theme the issue contributes to.                                        |
 | **Module**     | `module/oracle`, `module/router`, `module/reputation`, `module/mcp`, `module/api`, `module/ui`, `module/sep10`, `module/sep24`, `module/sep38` | Which subsystem the change lands in. Helps route PRs to the right reviewer.       |
 | **Meta**       | `release`, `dependencies`, `size/xs`–`size/xl`                                                                                                 | Release tracking, dependency updates, and PR size estimation.                     |

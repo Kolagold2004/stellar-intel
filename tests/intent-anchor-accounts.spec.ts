@@ -23,7 +23,7 @@ describe('routingTargetsForCorridor (#941)', () => {
     const { routingTargetsForCorridor } = await load();
 
     // Fails closed. The previous behaviour was to return a fabricated address.
-    expect(routingTargetsForCorridor('usdc-ngn')).toEqual([]);
+    expect(routingTargetsForCorridor('ngnt-ngn')).toEqual([]);
   });
 
   it('returns only anchors that both serve the corridor and have an account', async () => {
@@ -34,7 +34,7 @@ describe('routingTargetsForCorridor (#941)', () => {
     );
     const { routingTargetsForCorridor } = await load();
 
-    expect(routingTargetsForCorridor('usdc-ngn').map((t) => t.anchorId)).toEqual(['cowrie']);
+    expect(routingTargetsForCorridor('ngnt-ngn').map((t) => t.anchorId)).toEqual(['cowrie']);
   });
 
   it('ignores an anchor that is not in the registry', async () => {
@@ -51,7 +51,7 @@ describe('routingTargetsForCorridor (#941)', () => {
       const { routingTargetsForCorridor } = await load();
       // A typo in this config is a payment to a stranger, so anything that is
       // not a well-formed public key is dropped rather than passed through.
-      expect(routingTargetsForCorridor('usdc-ngn')).toEqual([]);
+      expect(routingTargetsForCorridor('ngnt-ngn')).toEqual([]);
     }
   });
 
@@ -59,14 +59,14 @@ describe('routingTargetsForCorridor (#941)', () => {
     vi.stubEnv('ANCHOR_PAYMENT_ACCOUNTS', '{not json');
     const { routingTargetsForCorridor } = await load();
 
-    expect(routingTargetsForCorridor('usdc-ngn')).toEqual([]);
+    expect(routingTargetsForCorridor('ngnt-ngn')).toEqual([]);
   });
 
   it('carries the registry domain, not a configured one', async () => {
     vi.stubEnv('ANCHOR_PAYMENT_ACCOUNTS', JSON.stringify({ cowrie: VALID_KEY }));
     const { routingTargetsForCorridor } = await load();
 
-    const target = routingTargetsForCorridor('usdc-ngn')[0];
+    const target = routingTargetsForCorridor('ngnt-ngn')[0];
     const registry = ANCHORS.find((a) => a.id === 'cowrie');
     // The domain is the registry's, so config cannot redirect an anchor's
     // identity — only supply its payment account.
@@ -82,7 +82,7 @@ describe('registeredAnchorsForCorridor (#941)', () => {
 
     // Used to explain *why* a corridor is unroutable, so it must report
     // anchors that exist but lack an account.
-    expect(registeredAnchorsForCorridor('usdc-ngn')).toContain('cowrie');
+    expect(registeredAnchorsForCorridor('ngnt-ngn')).toContain('cowrie');
     expect(registeredAnchorsForCorridor('usdc-kes')).toContain('moneygram');
     expect(registeredAnchorsForCorridor('usdc-nonexistent')).toEqual([]);
   });

@@ -1,0 +1,40 @@
+# Source: https://mirrasets.com/.well-known/stellar.toml (fetched 2026-10-15)
+[DOCUMENTATION]
+ORG_NAME = "Mirrasets"
+ORG_URL = "https://mirrasets.com"
+
+[[CURRENCIES]]
+code = "GBPC"
+issuer = "GDXF6SYWIQOKOZ7BACXHBFBLQZEIH25KOTTLWQK35GO3JKRNIFHHGBPC"
+anchor_asset_type = "fiat"
+anchor_asset = "GBP"
+
+[[CURRENCIES]]
+code = "AQUAm25"
+issuer = "GDXF6SYWIQOKOZ7BACXHBFBLQZEIH25KOTTLWQK35GO3JKRNIFHHGBPC"
+anchor_asset_type = "crypto"
+anchor_asset = "AQUA"
+
+[[CURRENCIES]]
+code = "AQUAmb"
+issuer = "GDXF6SYWIQOKOZ7BACXHBFBLQZEIH25KOTTLWQK35GO3JKRNIFHHGBPC"
+anchor_asset_type = "crypto"
+anchor_asset = "AQUA"
+
+[[CURRENCIES]]
+code = "KRWC"
+issuer = "GA4JBPWVFUT2FETDSMSGBYDGH4FROYB5SYKLVQO7WGNZHCSB63OIKRWC"
+anchor_asset_type = "fiat"
+anchor_asset = "KRW"
+
+[[CURRENCIES]]
+code = "EURC"
+issuer = "GAP2JFYUBSSY65FIFUN3NTUKP6MQQ52QETQEBDM25PFMQE2EEN2EEURC"
+anchor_asset_type = "fiat"
+anchor_asset = "EUR"
+
+[[CURRENCIES]]
+code = "USDC"
+issuer = "GCBYVQH3RZ4JDVFMNWETE3J6U3AW6NNGTIWNVJHNQIIEGQR4K7PLUSDC"
+anchor_asset_type = "fiat"
+anchor_asset = "USD"

@@ -21,8 +21,13 @@ vi.mock('@/lib/stellar/sep38', () => ({
   getSep38Price: vi.fn(),
 }));
 vi.mock('@/lib/stellar/sep24', () => ({ getSep24Info: vi.fn() }));
-vi.mock('@/lib/stellar/sep6', () => ({ getSep6Info: vi.fn() }));
-vi.mock('@/lib/fx/rates', () => ({ getUsdFxRate: vi.fn() }));
+vi.mock('@/lib/stellar/sep6', async (importActual) => {
+  const actual = await importActual<typeof import('@/lib/stellar/sep6')>();
+  // Keep the real Sep6AssetDisabledError: server-rates' withdraw-exchange
+  // retry (#1296) decides via instanceof, which a mocked class would break.
+  return { ...actual, getSep6Info: vi.fn() };
+});
+vi.mock('@/lib/fx/rates', () => ({ getUsdFxRate: vi.fn(), getFxRate: vi.fn() }));
 
 import { fetchCorridorRates } from '@/lib/stellar/server-rates';
 import { getAnchorsByCorridorId } from '@/lib/stellar/anchors';
@@ -30,7 +35,7 @@ import { resolveAnchor } from '@/lib/stellar/sep1';
 import { assertSep38Capable } from '@/lib/stellar/sep38';
 import { getSep24Info } from '@/lib/stellar/sep24';
 import { getSep6Info } from '@/lib/stellar/sep6';
-import { getUsdFxRate } from '@/lib/fx/rates';
+import { getUsdFxRate, getFxRate } from '@/lib/fx/rates';
 
 const sep6OnlyAnchor: Anchor = {
   id: 'cowrie',
@@ -65,6 +70,7 @@ beforeEach(() => {
     fields: {},
   });
   vi.mocked(getUsdFxRate).mockResolvedValue(1550);
+  vi.mocked(getFxRate).mockResolvedValue(1550);
 });
 
 describe('fetchCorridorRates — SEP-6 Tier-3 fallback', () => {
@@ -111,5 +117,105 @@ describe('fetchCorridorRates — SEP-6 Tier-3 fallback', () => {
     expect(result.rates).toHaveLength(0);
     const err = result.errors.find((e) => e.anchorId === 'cowrie');
     expect(err?.reason).not.toContain('SEP-6');
+  });
+});
+
+describe('fetchCorridorRates — withdraw-exchange fallback (#1296)', () => {
+  it('still yields a sep6-fee rate when the anchor offers USDC only via withdraw-exchange', async () => {
+    const { Sep6AssetDisabledError } = await import('@/lib/stellar/sep6');
+    // Latamex shape: plain `withdraw` disables USDC, `withdraw-exchange`
+    // carries it. The first (plain) call throws; the retry with
+    // `{ exchange: true }` succeeds.
+    vi.mocked(getSep6Info).mockImplementation(async (server, asset, opts) => {
+      if (opts?.exchange) {
+        return { enabled: true, feeFixed: 1, feePercent: 0, min: 10, max: 10000, fields: {} };
+      }
+      throw new Sep6AssetDisabledError(asset, server);
+    });
+
+    const result = await fetchCorridorRates('usdc-ngn', '100');
+
+    expect(result.rates).toHaveLength(1);
+    expect(result.rates[0]?.source).toBe('sep6-fee');
+    // Both calls happened: plain first, exchange retry second.
+    expect(vi.mocked(getSep6Info)).toHaveBeenCalledWith(sep6Toml.TRANSFER_SERVER, 'USDC');
+    expect(vi.mocked(getSep6Info)).toHaveBeenCalledWith(sep6Toml.TRANSFER_SERVER, 'USDC', {
+      exchange: true,
+    });
+  });
+});
+
+describe('fetchCorridorRates — Latamex usdc-ars via withdraw-exchange (#1298)', () => {
+  it('yields a sep6-fee rate on usdc-ars when /info has only withdraw-exchange.USDC', async () => {
+    const { Sep6AssetDisabledError } = await import('@/lib/stellar/sep6');
+    const latamex: Anchor = {
+      id: 'latamex',
+      name: 'Latamex',
+      homeDomain: 'pubnet-sep.latamex.com',
+      corridors: ['arst-ars', 'brlt-brl', 'usdc-ars', 'usdc-brl'],
+      assetCode: 'ARST',
+      assetIssuer: 'GCSAZVWXZKWS4XS223M5F54H2B6XPIIXZZGP7KEAIU6YSL5HDRGCI3DG',
+    };
+    vi.mocked(getAnchorsByCorridorId).mockReturnValue([latamex]);
+    vi.mocked(resolveAnchor).mockResolvedValue({
+      ...sep6Toml,
+      TRANSFER_SERVER: 'https://transfer-server.zetl.network',
+    } as unknown as Sep1TomlData);
+    vi.mocked(getUsdFxRate).mockResolvedValue(1000);
+    vi.mocked(getFxRate).mockResolvedValue(1000);
+    // Mocked /info: plain `withdraw` has no USDC, `withdraw-exchange.USDC` does.
+    vi.mocked(getSep6Info).mockImplementation(async (server, asset, opts) => {
+      if (opts?.exchange) {
+        return { enabled: true, feeFixed: 1, feePercent: 0, min: 10, max: 10000, fields: {} };
+      }
+      throw new Sep6AssetDisabledError(asset, server);
+    });
+
+    const result = await fetchCorridorRates('usdc-ars', '100');
+
+    expect(result.errors).toHaveLength(0);
+    expect(result.rates).toHaveLength(1);
+    expect(result.rates[0]?.anchorId).toBe('latamex');
+    expect(result.rates[0]?.corridorId).toBe('usdc-ars');
+    expect(result.rates[0]?.source).toBe('sep6-fee');
+    // sellAmount=100, feeFixed=1 -> net=99; 99 * 1000 = 99000
+    expect(result.rates[0]?.totalReceived).toBeCloseTo(99000);
+  });
+});
+
+describe('fetchCorridorRates — non-USDC corridor SEP-6 asset (#1282)', () => {
+  it('requests the corridor asset code from SEP-6 /info instead of USDC', async () => {
+    const latamex: Anchor = {
+      id: 'latamex',
+      name: 'Latamex',
+      homeDomain: 'pubnet-sep.latamex.com',
+      corridors: ['arst-ars', 'brlt-brl', 'usdc-ars', 'usdc-brl'],
+      assetCode: 'USDC',
+      assetIssuer: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+    };
+    vi.mocked(getAnchorsByCorridorId).mockReturnValue([latamex]);
+    vi.mocked(resolveAnchor).mockResolvedValue({
+      ...sep6Toml,
+      TRANSFER_SERVER: 'https://transfer-server.zetl.network',
+    } as unknown as Sep1TomlData);
+    vi.mocked(getUsdFxRate).mockResolvedValue(1000);
+    vi.mocked(getFxRate).mockResolvedValue(1000);
+    vi.mocked(getSep6Info).mockResolvedValue({
+      enabled: true,
+      feeFixed: 1,
+      feePercent: 0,
+      min: 10,
+      max: 10000,
+      fields: {},
+    });
+
+    const result = await fetchCorridorRates('arst-ars', '100');
+
+    expect(result.errors).toHaveLength(0);
+    expect(result.rates).toHaveLength(1);
+    expect(vi.mocked(getSep6Info)).toHaveBeenCalledWith(
+      'https://transfer-server.zetl.network',
+      'ARST'
+    );
   });
 });

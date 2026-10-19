@@ -1,0 +1,27 @@
+{
+  "capturedAt": "2026-09-27T20:58:36Z",
+  "capturedFrom": {
+    "method": "POST",
+    "url": "https://api.soroswap.finance/quote?network=mainnet"
+  },
+  "status": 400,
+  "body": {
+    "message": "Invalid Stellar address",
+    "error": "Bad Request",
+    "statusCode": 400
+  },
+  "responseHeaders": {
+    "access-control-allow-origin": "*",
+    "content-length": "76",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Sun, 27 Sep 2026 20:58:36 GMT",
+    "etag": "W/\"4c-qeH5WHA0wrejwB53T20IwP1JQq0\"",
+    "server": "Google Frontend",
+    "x-cloud-trace-context": "ccd69c8dc26bc374001c8e67e6c7f187",
+    "x-correlation-id": "ba5e9dc8-a0ea-4b67-8b82-c12b9e597407",
+    "x-powered-by": "Express",
+    "x-ratelimit-limit": "5",
+    "x-ratelimit-remaining": "4",
+    "x-ratelimit-reset": "1"
+  }
+}

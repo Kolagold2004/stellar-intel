@@ -1,0 +1,81 @@
+{
+  "capturedAt": "2026-10-06T05:24:46.641Z",
+  "capturedFrom": {
+    "method": "POST",
+    "url": "https://api.soroswap.finance/quote?network=mainnet"
+  },
+  "request": {
+    "assetIn": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+    "assetOut": "CB226ZOEYXTBPD3QEGABTJYSKZVBP2PASEISLG3SBMTN5CE4QZUVZ3CE",
+    "amount": "10000000",
+    "tradeType": "EXACT_IN",
+    "protocols": ["soroswap", "phoenix", "aqua"]
+  },
+  "status": 201,
+  "body": {
+    "assetIn": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+    "assetOut": "CB226ZOEYXTBPD3QEGABTJYSKZVBP2PASEISLG3SBMTN5CE4QZUVZ3CE",
+    "tradeType": "EXACT_IN",
+    "amountIn": "10000000",
+    "amountOut": "9980733",
+    "otherAmountThreshold": "9930829",
+    "priceImpactPct": "0.00",
+    "platform": "aggregator",
+    "routePlan": [
+      {
+        "swapInfo": {
+          "protocol": "aqua",
+          "path": [
+            "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+            "CB226ZOEYXTBPD3QEGABTJYSKZVBP2PASEISLG3SBMTN5CE4QZUVZ3CE"
+          ]
+        },
+        "percent": "100.00"
+      }
+    ],
+    "rawTrade": {
+      "amountIn": "9990000",
+      "amountOutMin": "9930829",
+      "distribution": [
+        {
+          "protocol_id": "aqua",
+          "path": [
+            "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+            "CB226ZOEYXTBPD3QEGABTJYSKZVBP2PASEISLG3SBMTN5CE4QZUVZ3CE"
+          ],
+          "parts": 10,
+          "is_exact_in": true,
+          "poolIds": ["CAC56QNJ2CX456TPC5S4MSOU3DBULG4TGN7AZ2SAYGBLD3GICFMZBIT2"],
+          "poolHashes": ["89f53ae8d7a4975014593f28298a15235b0a3e052de630c7a936a1c6566d3205"],
+          "hops": [
+            {
+              "poolId": "CAC56QNJ2CX456TPC5S4MSOU3DBULG4TGN7AZ2SAYGBLD3GICFMZBIT2",
+              "protocol": "aqua",
+              "tokenIn": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+              "tokenOut": "CB226ZOEYXTBPD3QEGABTJYSKZVBP2PASEISLG3SBMTN5CE4QZUVZ3CE",
+              "amountIn": "9990000",
+              "amountOut": "9980733",
+              "feeBps": 10,
+              "poolHash": "89f53ae8d7a4975014593f28298a15235b0a3e052de630c7a936a1c6566d3205"
+            }
+          ],
+          "share": "9990000"
+        }
+      ]
+    }
+  },
+  "responseHeaders": {
+    "access-control-allow-origin": "*",
+    "content-length": "1277",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Tue, 06 Oct 2026 05:24:54 GMT",
+    "etag": "W/\"4fd-Tqe8AoPJmWZJ6gDGEMOzFylPRuo\"",
+    "server": "Google Frontend",
+    "x-cloud-trace-context": "36ef84afa8cd94f44ffdcd2d9448c80e;o=1",
+    "x-correlation-id": "c92768fc-6fa1-4056-b3fa-84e876b03290",
+    "x-powered-by": "Express",
+    "x-ratelimit-limit": "5",
+    "x-ratelimit-remaining": "4",
+    "x-ratelimit-reset": "1"
+  }
+}

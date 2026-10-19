@@ -21,6 +21,8 @@ export interface Anchor {
   serviceDomain?: string;
   /** Known SEP protocol support flags for this anchor. */
   seps?: Array<'sep6' | 'sep10' | 'sep24' | 'sep31' | 'sep38'>;
+  /** Anchor requires SEP-10 client_domain; see docs. */
+  sep10ClientDomain?: boolean;
   /**
    * subset of corridors whose payout currency has not been confirmed on any live /info response;
    * still routable, but flagged to users.
@@ -39,6 +41,44 @@ export interface Anchor {
   depositEnabled?: boolean;
   /** Structured operator-supplied metadata, as collected by the anchor onboarding template. */
   metadata?: AnchorMetadata;
+}
+
+/**
+ * One row of the committed anchor census (constants/anchor-census-rows.json),
+ * derived from scripts/anchor-survey.mjs. Covers every surveyed anchor —
+ * routable, health-only, or merely listed — not just the ones registered in
+ * constants/anchors.ts.
+ */
+export interface AnchorCensusRow {
+  domain: string;
+  tier: 'routable' | 'health-only' | 'listed';
+  seps: {
+    sep6: boolean;
+    sep24: boolean;
+    sep31: boolean;
+    sep38: boolean;
+    sep10: boolean;
+  };
+  withdrawAssets: string[];
+  depositAssets: string[];
+  receiveAssets: string[];
+  sources: string[];
+  /** Matching `constants/anchors.ts` id, matched on home or service domain; null if unregistered. */
+  registeredAnchorId: string | null;
+  checkedAt: string;
+}
+
+/** The committed anchor census, written by `node scripts/anchor-survey.mjs --census-out <path>`. */
+export interface AnchorCensus {
+  generatedAt: string | null;
+  sources: string[];
+  counts: {
+    routable: number;
+    healthOnly: number;
+    listed: number;
+    excluded: number;
+  };
+  rows: AnchorCensusRow[];
 }
 
 /**
@@ -110,6 +150,11 @@ export interface AnchorRate {
    * Present when the leaderboard API is reachable; absent otherwise.
    */
   reputationRank?: number;
+  /**
+   * The anchor's payout currency on this corridor has not been confirmed on a
+   * live /info; see Anchor.unverifiedCorridors.
+   */
+  unverifiedPayout?: boolean;
 }
 
 /**
@@ -699,6 +744,24 @@ export interface Sep6WithdrawNeedsInfo {
 export type Sep6WithdrawResponse =
   Sep6WithdrawInteractive | Sep6WithdrawNonInteractive | Sep6WithdrawNeedsInfo;
 
+// ─── SEP-31 ───────────────────────────────────────────────────────────────────
+
+/** A single asset entry in SEP-31 GET /info `receive`. Record-only: no send/quote fields. */
+export interface Sep31ReceiveAsset {
+  enabled?: boolean;
+  quotes_supported?: boolean;
+  quotes_required?: boolean;
+  min_amount?: number;
+  max_amount?: number;
+  fee_fixed?: number;
+  fee_percent?: number;
+}
+
+/** SEP-31 GET /info response, receive side only (no send, customer, or transaction endpoints). */
+export interface Sep31Info {
+  receive: Record<string, Sep31ReceiveAsset>;
+}
+
 // ─── SEP-12 ───────────────────────────────────────────────────────────────────
 
 /** Normalized customer status returned by SEP-12 GET /customer. */
@@ -717,4 +780,57 @@ export interface Sep12CustomerResponse {
   fields?: Record<string, Sep12CustomerField>;
   provided_fields?: Record<string, Sep12CustomerField>;
   message?: string;
+}
+
+// ─── Listed anchors ──────────────────────────────────────────────────────────
+
+/**
+ * Why an operator is tracked without being routable. `issuer`: stellar.toml
+ * publishes assets but no SEP-6/SEP-24 rail. `crypto-rails`: SEP-6/SEP-24 rails
+ * exist, but every asset on them is a crypto asset with no fiat payout.
+ */
+export type ListedAnchorKind = 'issuer' | 'crypto-rails';
+
+/** The SEP-1 `anchor_asset_type` values. */
+export type Sep1AnchorAssetType =
+  'fiat' | 'crypto' | 'nft' | 'stock' | 'bond' | 'commodity' | 'realestate' | 'other';
+
+/** One asset an operator issues, as published in its stellar.toml `[[CURRENCIES]]`. */
+export interface ListedAsset {
+  code: string;
+  issuer: string;
+  /** Mirrors the toml `anchor_asset_type`; `null` when the toml omits it. */
+  anchorAssetType: Sep1AnchorAssetType | null;
+  /** Mirrors the toml `anchor_asset`; `null` when the toml omits it. */
+  anchorAsset: string | null;
+}
+
+/**
+ * A SEP-6/SEP-24 rail of a `crypto-rails` operator. The asset lists are the codes
+ * whose `enabled === true` in that rail's `/info` `deposit` / `withdraw` maps;
+ * `withdrawTypes` is the sorted union of `types` keys across enabled withdraw assets.
+ */
+export interface ListedCryptoRail {
+  sep: 'sep6' | 'sep24';
+  transferServer: string;
+  depositAssets: string[];
+  withdrawAssets: string[];
+  withdrawTypes: string[];
+}
+
+/** A hand-curated operator that is tracked and shown but never routed. */
+export interface ListedAnchor {
+  id: string;
+  name: string;
+  kind: ListedAnchorKind;
+  /** `domains[0]` is the domain the fixture was taken from. */
+  domains: string[];
+  orgUrl: string | null;
+  /** `YYYY-MM-DD` date the operator's toml was last checked. */
+  verifiedAt: string;
+  assets: ListedAsset[];
+  cryptoRails?: ListedCryptoRail[];
+  /** Id of an `ANCHORS` entry run by the same operator (e.g. MoneyGram's issuer domain → `moneygram`). */
+  registeredAnchorId?: string;
+  note?: string;
 }

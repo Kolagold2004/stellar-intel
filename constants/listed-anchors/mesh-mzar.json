@@ -1,0 +1,16 @@
+{
+  "id": "mesh-mzar",
+  "name": "Mesh Trade (mZAR)",
+  "kind": "issuer",
+  "domains": ["mzar.co.za"],
+  "orgUrl": "https://mzar.co.za/",
+  "verifiedAt": "2026-09-23",
+  "assets": [
+    {
+      "code": "mZAR",
+      "issuer": "GCBNWTCCMC32UHZ5OCC2PNMFDGXRVPA7MFFBFFTCVW77SX5PMRB7Q4BY",
+      "anchorAssetType": "fiat",
+      "anchorAsset": "ZAR"
+    }
+  ]
+}

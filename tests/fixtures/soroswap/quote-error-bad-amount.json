@@ -1,0 +1,22 @@
+{
+  "capturedAt": "2026-10-06T05:21:01.358Z",
+  "request": {
+    "method": "POST",
+    "path": "/quote?network=mainnet",
+    "body": {
+      "assetIn": "CBBHRKEP5M3NUDRISGLJKGHDHX3DA2CN2AZBQY6WLVUJ7VNLGSKBDUCM",
+      "assetOut": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "amount": "0",
+      "tradeType": "EXACT_IN",
+      "protocols": ["soroswap"]
+    }
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "message": "amount must be a positive integer number of stroops",
+      "error": "Bad Request",
+      "statusCode": 400
+    }
+  }
+}

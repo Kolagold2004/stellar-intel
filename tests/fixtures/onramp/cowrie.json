@@ -1,13 +1,13 @@
 {
-  "_comment": "Live SEP-6 GET /info deposit capture (#1095), captured by hand against the anchor's own advertised transfer server the same way tests/fixtures/sep38/capability-capture.json was.",
+  "_comment": "Live SEP-6 GET /info deposit capture (#1095), captured by hand against the anchor's own advertised transfer server the same way tests/fixtures/sep38/capability-capture.json was. Anchor now supports NGNT deposits.",
   "capturedAt": "2026-08-30T00:45:00.000Z",
   "anchorId": "cowrie",
   "homeDomain": "cowrie.exchange",
-  "registeredAssetCode": "USDC",
+  "registeredAssetCode": "NGNT",
   "transferServer": "https://api.cowrie.exchange/transfer",
   "reachable": true,
-  "supportsDeposit": false,
-  "reason": "The anchor's deposit map has no USDC entry at all — the only depositable asset code advertised is NGNT, the anchor's own on-chain token, not the USDC this registry entry routes for. cowrie is registered here for its SEP-6 withdraw coverage (usdc-ngn); deposit is a separate, unadvertised capability for the registered asset.",
+  "supportsDeposit": true,
+  "reason": "The anchor's deposit map has an enabled NGNT deposit entry.",
   "info": {
     "deposit": {
       "NGNT": {

@@ -129,7 +129,7 @@ describe('fetchAllAnchorFees', () => {
       })
     );
 
-    const results = await fetchAllAnchorFees('100', 'usdc-ngn');
+    const results = await fetchAllAnchorFees('100', 'usdc-brl');
     const fulfilled = results.filter((r) => r.status === 'fulfilled');
     const rejected = results.filter((r) => r.status === 'rejected');
     expect(fulfilled.length).toBeGreaterThan(0);

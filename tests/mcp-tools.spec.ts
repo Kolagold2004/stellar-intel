@@ -86,7 +86,7 @@ describe('MCP tool contracts, offline (#1052)', () => {
 
   const PREPARE_ARGS = {
     type: 'offramp',
-    sourceAsset: 'USDC',
+    sourceAsset: 'NGNT',
     destinationAsset: 'NGN',
     amount: '100',
     sender: SENDER.publicKey(),
@@ -134,7 +134,7 @@ describe('MCP tool contracts, offline (#1052)', () => {
     it('returns the routed anchor, a hashed quote id, the net received and an expiry', async () => {
       const result = await client.callTool({
         name: 'intel.offramp.quote',
-        arguments: { from: 'USDC', to: 'NGN', amount: '100' },
+        arguments: { from: 'NGNT', to: 'NGN', amount: '100' },
       });
 
       expect(result.isError).toBeFalsy();
@@ -146,7 +146,7 @@ describe('MCP tool contracts, offline (#1052)', () => {
       };
       expect(quote.anchor).toBe('cowrie');
       expect(quote.quoteId).toMatch(/^[0-9a-f]{64}$/);
-      expect(Number(quote.netReceived)).toBe(expectedNetReceived('usdc-ngn', '100'));
+      expect(Number(quote.netReceived)).toBe(expectedNetReceived('ngnt-ngn', '100'));
       expect(new Date(quote.expiresAt).getTime()).toBeGreaterThan(Date.now());
       // The text block mirrors the structured payload, so a client that reads
       // only one of the two still sees the same answer.
@@ -168,11 +168,11 @@ describe('MCP tool contracts, offline (#1052)', () => {
     it('is case-insensitive about the corridor', async () => {
       const result = await client.callTool({
         name: 'intel.offramp.quote',
-        arguments: { from: 'usdc', to: 'ngn', amount: '100' },
+        arguments: { from: 'ngnt', to: 'ngn', amount: '100' },
       });
 
       expect(result.isError).toBeFalsy();
-      expect(fetchCorridorRates).toHaveBeenCalledWith('usdc-ngn', '100');
+      expect(fetchCorridorRates).toHaveBeenCalledWith('ngnt-ngn', '100');
     });
 
     it('reports NO_ROUTE for a corridor the router does not serve', async () => {
@@ -188,7 +188,7 @@ describe('MCP tool contracts, offline (#1052)', () => {
     it('reports RATE_UNAVAILABLE, with the anchor reason, when the anchor cannot be quoted', async () => {
       const result = await client.callTool({
         name: 'intel.offramp.quote',
-        arguments: { from: 'USDC', to: 'NGN', amount: UNQUOTABLE_AMOUNT },
+        arguments: { from: 'NGNT', to: 'NGN', amount: UNQUOTABLE_AMOUNT },
       });
 
       expect(result.isError).toBe(true);
@@ -201,7 +201,7 @@ describe('MCP tool contracts, offline (#1052)', () => {
     it('rejects a malformed amount without reaching the rate source', async () => {
       const result = await client.callTool({
         name: 'intel.offramp.quote',
-        arguments: { from: 'USDC', to: 'NGN', amount: 'not-a-number' },
+        arguments: { from: 'NGNT', to: 'NGN', amount: 'not-a-number' },
       });
 
       expect(result.isError).toBe(true);
@@ -214,7 +214,7 @@ describe('MCP tool contracts, offline (#1052)', () => {
       // failure out of the routing code.
       const result = await client.callTool({
         name: 'intel.offramp.quote',
-        arguments: { from: 'USDC', to: 'NGN' },
+        arguments: { from: 'NGNT', to: 'NGN' },
       });
 
       expect(result.isError).toBe(true);
@@ -329,7 +329,7 @@ describe('MCP tool contracts, offline (#1052)', () => {
         status: 'submitted',
         hash: 'a'.repeat(64),
         ledger: 51_234_567,
-        corridorId: 'usdc-ngn',
+        corridorId: 'ngnt-ngn',
         anchorId: 'cowrie',
       });
       expect(submitTransaction).toHaveBeenCalledTimes(1);

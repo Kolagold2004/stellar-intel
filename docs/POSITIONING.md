@@ -50,7 +50,7 @@ They are listed rather than quietly deleted, because the point of narrowing is
 to stop making them.
 
 1. **"Live SEP-38 quotes across every integrated anchor."** On 2026-08-05,
-   **one of six registered anchors advertises `ANCHOR_QUOTE_SERVER` at all**,
+   **one of the then-seven registered anchors advertises `ANCHOR_QUOTE_SERVER` at all**,
    and that one does not quote the corridor it is registered for. Comparing
    firm quotes across anchors is not a thing that can be done today, because
    the quotes do not exist. The worked evidence is in the Anchor Directory
@@ -69,7 +69,7 @@ of the data.
 
 ### What is actually true today
 
-- Seven registered anchors, probed every five minutes across four signals:
+- Thirteen registered anchors, probed every five minutes across four signals:
   uptime, quote availability, issuer mismatch, TOML integrity.
 - A published methodology for turning those samples into a score, with small
   samples labelled as small.
@@ -161,7 +161,9 @@ Three things this section deliberately does not say:
    for it. Judging it by a monitor's refresh rate would be judging it against a
    purpose it never claimed.
 2. **Not "we are more complete."** This project tracks a **small registered
-   set** — currently six anchors — against a directory that lists many more.
+   set** — currently thirteen anchors, two of which are never routed on their
+   SEP-31-only lanes (PeraHub, and KB Trading's CLPX→CLP lane) — against a
+   directory that lists many more.
    On coverage the directory wins outright.
 3. **Not "reserve attestation is a gap we fill."** It is not implemented here
    either. It is noted as pending on SDF's side because
@@ -331,10 +333,10 @@ Sources, retrieval dates and the full notes are in
 
 ### Integration conversation: not yet opened
 
-**Status as of 2026-08-05: no contact has been made.** #711 tracks the outreach
-and has not been actioned. Nothing in this section should be read as implying a
-relationship, a conversation in progress, or any awareness on ROZO's part that
-this project exists.
+**Status as of 2026-08-05: no contact has been made.** Issue #711 was closed on
+2026-08-05 without an integration. Nothing in this section should be read as
+implying a relationship, a conversation in progress, or any awareness on ROZO's
+part that this project exists.
 
 That issue should open with the complement rather than the contrast — the useful
 opening question is which anchor their fiat-terminating intents exit through

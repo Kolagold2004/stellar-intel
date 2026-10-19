@@ -53,7 +53,7 @@ Nobody publishes the answers. An anchor's `stellar.toml` says what it supports;
 it does not say whether that was true this morning. Stellar Intel answers the
 third question directly and the first two as the data allows.
 
-1. **The record.** Seven registered anchors, probed every five minutes across
+1. **The record.** Six registered anchors, probed every five minutes across
    four signals — uptime, quote availability, issuer mismatch, TOML integrity.
    Samples accumulate; the scoring method is published in
    [`docs/ANCHOR_REPUTATION.md`](docs/ANCHOR_REPUTATION.md), and small samples
@@ -70,8 +70,8 @@ Non-custodial by construction: every leg is signed by the user, the anchor
 takes custody under SEP-24, Stellar enforces atomicity. We never touch funds.
 
 **One honest caveat, because it changes what (2) means today.** Firm SEP-38
-quotes are scarce on the live network: as of 2026-08-05, one of the seven
-registered anchors advertises a quote server at all, and it does not quote the
+quotes are scarce on the live network: as of 2026-08-05, one of the then-seven
+registered anchors (six today, after MyKobo's delisting on 2026-09-06) advertises a quote server at all, and it does not quote the
 corridor it is registered for. Ranking across firm quotes is a capability that
 becomes real as anchors adopt SEP-38, not one that is real today. The evidence,
 and what is measured in the meantime, is in
@@ -133,12 +133,12 @@ npm run build
 ## Environment Variables
 
 Copy `.env.example` to `.env.local` and set the following variables. The server
-validates these at boot in `lib/config.ts` and fails fast on a missing or
+validates these at boot in `lib/env.ts` and fails fast on a missing or
 malformed required value.
 
 | Variable                         | Required | Default                                      | Description                                                               |
 | -------------------------------- | -------- | -------------------------------------------- | ------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_STELLAR_NETWORK`    | Yes      | `mainnet`                                    | Stellar network (`mainnet` or `testnet`).                                 |
+| `NEXT_PUBLIC_STELLAR_NETWORK`    | Yes      | `mainnet`                                    | Stellar network (`mainnet`, `testnet` or `futurenet`).                    |
 | `NEXT_PUBLIC_HORIZON_URL`        | Yes      | `https://horizon.stellar.org`                | Horizon server URL.                                                       |
 | `NEXT_PUBLIC_USDC_ISSUER`        | Yes      | —                                            | USDC issuer public key (`G…`, 56 chars). Validated; no default.           |
 | `NEXT_PUBLIC_STELLAR_EXPERT_URL` | No       | `https://api.stellar.expert/explorer/public` | Stellar Expert API base for transaction links.                            |
@@ -152,6 +152,29 @@ for mainnet). To point at the Stellar testnet, set:
 NEXT_PUBLIC_STELLAR_NETWORK=testnet
 NEXT_PUBLIC_HORIZON_URL=https://horizon-testnet.stellar.org
 ```
+
+### Server-side / production
+
+`.env.example` also assigns the variables below. Where Required is not No, it names the part of
+the stack that needs the variable.
+
+| Variable                  | Required            | Description                                                                                                                         |
+| ------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_INTENT_FLOW` | No                  | Feature flag: the signed-intent off-ramp path is off unless set to `true`.                                                          |
+| `ROUTING_STRATEGY`        | No                  | Router selection strategy: `first-match` (default) or `scored` (multi-factor solver).                                               |
+| `FEE_BUDGET_PCT`          | No                  | Router fee budget as a percentage of the amount, e.g. `1` for 1%. `lib/env.ts` uses `100` when unset.                               |
+| `SOROSWAP_API_KEY`        | Swap hops           | Soroswap aggregator API key for the swap hop connector, which throws `SoroswapConfigError` when it is unset.                        |
+| `CRON_SECRET`             | Reputation pipeline | Shared secret required by the cron-triggered routes (publisher tick, reconcile, refresh).                                           |
+| `REPUTATION_BACKEND`      | No                  | Reputation store backend: `sqlite` (default) or `postgres`.                                                                         |
+| `DATABASE_URL`            | Reputation pipeline | Postgres connection string for the reputation store. Setting it implies the postgres backend.                                       |
+| `LOG_LEVEL`               | No                  | Pino log level: `trace`, `debug`, `info`, `warn` or `error` (default `info`).                                                       |
+| `METRICS_RESET_WINDOW_MS` | No                  | Metrics rolling-window length in milliseconds (default `3600000`, one hour).                                                        |
+| `ORACLE_CONTRACT_ID`      | Publisher           | Soroban reputation oracle contract address, required by `scripts/init-oracle-registry.ts` and the publisher.                        |
+| `STELLAR_NETWORK`         | Publisher           | Network the publisher signs against: `mainnet` or `testnet`. No default, since it signs real transactions.                          |
+| `PUBLISHER_SECRET`        | Publisher           | Secret key of an account registered as a publisher on the oracle contract, required by the publisher CLI and `/api/publisher/tick`. |
+
+[`docs/ARCHITECTURE.md` §11](docs/ARCHITECTURE.md#11-environment-variable-schema) is the
+exhaustive list, including the optional variables left commented out in `.env.example`.
 
 ---
 

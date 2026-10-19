@@ -173,7 +173,7 @@ describe('SQLite upgrade in place (migration 006)', () => {
         disputed_reason TEXT, publishedAt TEXT, oracleTxHash TEXT
       );
       INSERT INTO outcome_log (intentHash, anchorId, corridor, quotedRate, quotedAmount, outcome, createdAt)
-      VALUES ('legacy', 'cowrie', 'usdc-ngn', '1500', '100', 'completed', '2026-06-01T00:00:00.000Z');
+      VALUES ('legacy', 'cowrie', 'ngnt-ngn', '1500', '100', 'completed', '2026-06-01T00:00:00.000Z');
     `);
     legacy.close();
 

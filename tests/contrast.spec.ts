@@ -84,6 +84,7 @@ const PAIRS: Array<{ fg: string; bg: string; min: number }> = [
   { fg: 'accent', bg: 'background', min: THRESHOLD.normalText },
   { fg: 'accent', bg: 'bg-subtle', min: THRESHOLD.normalText },
   { fg: 'accent', bg: 'accent-subtle', min: THRESHOLD.normalText },
+  { fg: 'status-unknown', bg: 'bg-sunken', min: THRESHOLD.normalText },
 ];
 
 /**

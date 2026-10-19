@@ -1,0 +1,27 @@
+{
+  "capturedAt": "2026-09-27T20:58:36Z",
+  "capturedFrom": {
+    "method": "POST",
+    "url": "https://api.soroswap.finance/quote?network=mainnet"
+  },
+  "status": 400,
+  "body": {
+    "message": ["Each value in protocols must be a supported protocol"],
+    "error": "Bad Request",
+    "statusCode": 400
+  },
+  "responseHeaders": {
+    "access-control-allow-origin": "*",
+    "content-length": "107",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Sun, 27 Sep 2026 20:58:36 GMT",
+    "etag": "W/\"6b-tjxpzzSOc3eh7qxrADZlzlZB1T4\"",
+    "server": "Google Frontend",
+    "x-cloud-trace-context": "e2473974557440e94f33ff03a5192f2b",
+    "x-correlation-id": "142e0308-516d-42d5-94b0-ecf5f75c3e26",
+    "x-powered-by": "Express",
+    "x-ratelimit-limit": "5",
+    "x-ratelimit-remaining": "3",
+    "x-ratelimit-reset": "2"
+  }
+}

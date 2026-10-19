@@ -1,0 +1,10 @@
+# Source: https://mzar.co.za/.well-known/stellar.toml (fetched 2026-09-30)
+[DOCUMENTATION]
+ORG_NAME = "Mesh Trade South Africa (Pty) Ltd"
+ORG_URL = "https://mzar.co.za/"
+
+[[CURRENCIES]]
+code = "mZAR"
+issuer = "GCBNWTCCMC32UHZ5OCC2PNMFDGXRVPA7MFFBFFTCVW77SX5PMRB7Q4BY"
+anchor_asset_type = "fiat"
+anchor_asset = "ZAR"

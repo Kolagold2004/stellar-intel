@@ -4,7 +4,7 @@ import { CodeBlock } from '@/components/docs/CodeBlock';
 export const metadata: Metadata = {
   title: 'SDKs & Libraries',
   description:
-    'Client libraries for integrating Stellar Intel: a published Rust crate for on-chain reputation data, an MCP npm package, and typed fetch wrappers for TypeScript and Python.',
+    'Client libraries for Stellar Intel (not yet published to package registries): a Rust crate for on-chain reputation reads, an MCP server, and typed wrappers for TypeScript and Python.',
 };
 
 export default function SdksPage() {
@@ -35,19 +35,10 @@ export default function SdksPage() {
           <code className="text-xs">@stellarintel/sdk</code>,{' '}
           <code className="text-xs">@stellarintel/mcp</code>, and{' '}
           <code className="text-xs">@stellarintel/publisher</code> are not on npm,{' '}
-          <code className="text-xs">stellar-intel</code> is not on PyPI, and{' '}
+          <code className="text-xs">stellarintel</code> is not on PyPI, and{' '}
           <code className="text-xs">stellar-intel-reputation</code> is not on crates.io — running
-          their install commands returns 404 today. The packages are built, and publication is
-          tracked in{' '}
-          <a
-            href="https://github.com/ezedike-evan/stellar-intel/issues/806"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium underline underline-offset-2"
-          >
-            #806
-          </a>{' '}
-          for status updates. Until they ship, use the HTTP API directly (examples below).
+          their install commands returns 404 today. The packages are built but not yet published.
+          Until they ship, use the HTTP API directly (examples below).
         </p>
       </section>
 
@@ -134,7 +125,7 @@ export async function submitOfframpIntent(body: unknown) {
           <div>
             <h2 className="text-xl font-semibold text-primary-text">Python</h2>
             <p className="text-sm text-secondary-text">
-              <code className="text-xs">stellar-intel</code> — Not yet published (PyPI)
+              <code className="text-xs">stellarintel</code> — Not yet published (PyPI)
             </p>
           </div>
         </div>
@@ -209,17 +200,36 @@ soroban-sdk = "22.0"`}
         />
         <CodeBlock
           language="rust"
-          code={`use stellar_intel_reputation::ReputationReader;
-use soroban_sdk::{Env, Address};
+          code={`use soroban_sdk::{Address, Env, String};
+use stellar_intel_reputation::ReputationReader;
 
-fn read_anchor_score(env: Env, contract_id: Address, anchor: Address) {
-    let reader = ReputationReader::new(&env, &contract_id);
-    let score = reader.score(&anchor);
-    println!("Anchor score: {:?}", score);
+fn read_score(env: Env, oracle: Address, anchor_id: String, corridor: String) {
+    let reader = ReputationReader::new(&env, oracle);
+
+    // Composite score published for this (anchor, corridor) pair.
+    let score = reader.corridor_score(anchor_id.clone(), corridor.clone());
+
+    // Raw settlement totals for the same pair.
+    let aggregate = reader.corridor_aggregate(anchor_id.clone(), corridor);
+
+    // Client-derived success-rate score over the last 20 outcomes, when no
+    // metrics have been published yet for that specific corridor.
+    let fallback = reader.score_bps(anchor_id, 20);
 }`}
         />
+        <p className="text-secondary-text">
+          For an ordinary Rust program that calls the HTTP API, use the{' '}
+          <code>stellar-intel-client</code> crate, an async REST client built on{' '}
+          <code>reqwest</code> with retries and idempotency keys on by default. It is not yet
+          published to crates.io either:
+        </p>
+        <CodeBlock
+          language="toml"
+          code={`[dependencies]
+stellar-intel-client = { git = "https://github.com/ezedike-evan/stellar-intel", package = "stellar-intel-client" }`}
+        />
         <p className="text-sm text-secondary-text">
-          For HTTP API access from Rust, use <code>reqwest</code>:
+          Or call the HTTP API directly with <code>reqwest</code>:
         </p>
         <CodeBlock
           language="rust"
@@ -355,7 +365,7 @@ npx tsx scripts/mcp/server.ts`}
                 <td className="px-3 py-2 text-secondary-text">crates.io</td>
               </tr>
               <tr>
-                <td className="px-3 py-2 font-mono text-xs text-accent">stellar-intel (Python)</td>
+                <td className="px-3 py-2 font-mono text-xs text-accent">stellarintel (Python)</td>
                 <td className="px-3 py-2 text-secondary-text">Python</td>
                 <td className="px-3 py-2">
                   <span className="rounded-full bg-bg-sunken px-2 py-0.5 text-xs text-status-unknown">

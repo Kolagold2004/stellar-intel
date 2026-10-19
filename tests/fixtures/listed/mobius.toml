@@ -1,0 +1,8 @@
+# Source: https://mobius.network/.well-known/stellar.toml (fetched 2026-09-23)
+[DOCUMENTATION]
+ORG_NAME = "Mochi, Inc."
+ORG_URL = "https://mobius.network"
+
+[[CURRENCIES]]
+code = "MOBI"
+issuer = "GA6HCMBLTZS5VYYBCATRBRZ3BZJMAFUDKYYF6AH6MVCMGWMRDNSWJPIH"

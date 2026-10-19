@@ -31,6 +31,7 @@ the hardening contract (see `lib/api/v1.ts`):
   - [`POST /api/admin/disputes`](#post-apiadmindisputes)
 - **Anchors**
   - [`GET /api/v1/anchor-health/ledger`](#get-apiv1anchor-healthledger)
+  - [`GET /api/v1/anchors/census`](#get-apiv1anchorscensus)
   - [`GET /api/v1/anchors/{id}/health`](#get-apiv1anchorsidhealth)
 - **Intent**
   - [`POST /api/intent`](#post-apiintent)
@@ -50,6 +51,8 @@ the hardening contract (see `lib/api/v1.ts`):
   - [`GET /api/reputation/{anchor}`](#get-apireputationanchor)
   - [`GET /api/reputation/{anchor}/history`](#get-apireputationanchorhistory)
   - [`GET /v1/public/scores`](#get-v1publicscores)
+- **SEP-10**
+  - [`POST /api/sep10/client-domain`](#post-apisep10client-domain)
 - **SEP-6**
   - [`POST /api/sep6/withdraw`](#post-apisep6withdraw)
 - **System**
@@ -139,6 +142,28 @@ Publishes the nightly anchor health ledger as a dated artifact. Without `date`, 
 
 ---
 
+### `GET /api/v1/anchors/census`
+
+**Summary:** Get the anchor census  
+
+Serves the committed anchor census (constants/anchor-census-rows.json), covering every surveyed anchor — routable, health-only, or merely listed — not only the anchors registered for routing. Optionally filtered to a single tier.
+
+#### Parameters
+
+| Name | In | Type | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `tier` | `query` | `"routable" | "health-only" | "listed"` | No | Restrict the response to one tier. Omit for every row. |
+
+#### Responses
+
+| Status | Description | Content-Type | Schema |
+| :--- | :--- | :--- | :--- |
+| `200` | The anchor census, optionally filtered by tier | `application/json` | `AnchorCensusResponse` |
+| `400` | Invalid `tier` value | `application/json` | `ApiError` |
+| `429` | Rate limited | `application/json` | `ApiError` |
+
+---
+
 ### `GET /api/v1/anchors/{id}/health`
 
 **Summary:** Get anchor health status  
@@ -204,6 +229,8 @@ Resolves an anchor route for the given asset corridor, builds an unsigned Stella
 | `amount` | `string` | **Yes** | - |
 | `sender` | `string` | **Yes** | Stellar public key of the sender |
 | `recipient` | `string` | **Yes** | Destination address for the payout |
+| `nonce` | `string` | No | 128-bit random hex, required for replay protection when the intent is signed |
+| `deadline` | `string` | No | RFC 3339 datetime after which the intent must not execute; required when the intent is signed |
 
 #### Responses
 
@@ -495,6 +522,34 @@ Returns public 30-day corridor reputation scores. Supports conditional GET with 
 | `200` | Public scores array | `application/json` | `object[]` |
 | `304` | Not modified | - | - |
 | `429` | Rate limited | `application/json` | `ApiError` |
+
+---
+
+## SEP-10
+
+### `POST /api/sep10/client-domain`
+
+**Summary:** Co-sign a SEP-10 client_domain challenge  
+
+Adds the server-held `client_domain` signature to a verified SEP-10 challenge so an anchor can attribute the session to us. The challenge is re-validated in full against the anchor’s published SIGNING_KEY (mainnet, sequence 0, anchor-signed, manage_data only, timebounds ≤ 24h) and must carry exactly one `client_domain` operation naming our domain and sourced by our signing key. This route is not a general-purpose signing oracle.
+
+#### Request Body
+
+**Content-Type:** `application/json`
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `transaction` | `string` | **Yes** | Base64 SEP-10 challenge XDR from the anchor |
+| `homeDomain` | `string` | **Yes** | Home or service domain of a registered anchor the challenge is from |
+
+#### Responses
+
+| Status | Description | Content-Type | Schema |
+| :--- | :--- | :--- | :--- |
+| `200` | Challenge co-signed | `application/json` | `object` |
+| `400` | Invalid request, unregistered anchor, or challenge failed validation | `application/json` | `ApiError` |
+| `429` | Rate limited | `application/json` | `ApiError` |
+| `503` | Server client_domain signing is not configured | `application/json` | `ApiError` |
 
 ---
 

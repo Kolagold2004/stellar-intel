@@ -51,7 +51,7 @@
    accent-2           = accent    = accent    Deprecated alias, do not use
    status-up          #0a6b50     #63dcae     Anchor answered / healthy
    status-down        #a3341f     #e8705c     Anchor failed / degraded
-   status-unknown     #8a6a12     #e0b457     Not yet probed / small sample
+   status-unknown     #7c5e0e     #e0b457     Not yet probed / small sample
    ──────────────────────────────────────────────────────────────────────── */
 @theme {
   --color-primary-text: var(--primary-text);
@@ -148,7 +148,7 @@
   --accent-2: #0a6b50;
   --status-up: #0a6b50;
   --status-down: #a3341f;
-  --status-unknown: #8a6a12;
+  --status-unknown: #7c5e0e;
 }
 
 .dark {

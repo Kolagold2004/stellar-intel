@@ -1,0 +1,79 @@
+{
+  "capturedAt": "2026-10-06T05:27:16.149Z",
+  "capturedFrom": {
+    "method": "POST",
+    "url": "https://api.soroswap.finance/quote?network=mainnet"
+  },
+  "request": {
+    "assetIn": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+    "assetOut": "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV",
+    "amount": "10000000",
+    "tradeType": "EXACT_IN",
+    "protocols": ["soroswap", "phoenix", "aqua"]
+  },
+  "status": 201,
+  "body": {
+    "assetIn": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+    "assetOut": "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV",
+    "tradeType": "EXACT_IN",
+    "amountIn": "10000000",
+    "amountOut": "8955877",
+    "otherAmountThreshold": "8911097",
+    "priceImpactPct": "0.00",
+    "platform": "router",
+    "routePlan": [
+      {
+        "swapInfo": {
+          "protocol": "soroswap",
+          "path": [
+            "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+            "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV"
+          ]
+        },
+        "percent": "100.00"
+      }
+    ],
+    "rawTrade": {
+      "amountIn": "9990000",
+      "amountOutMin": "8911097",
+      "distribution": [
+        {
+          "protocol_id": "soroswap",
+          "path": [
+            "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+            "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV"
+          ],
+          "parts": 10,
+          "is_exact_in": true,
+          "poolIds": ["CC7CDFY2VGDODJ7WPO3JIK2MXLOAXL4LRQCC43UJDBAIJ4SVFO3HNPOC"],
+          "hops": [
+            {
+              "poolId": "CC7CDFY2VGDODJ7WPO3JIK2MXLOAXL4LRQCC43UJDBAIJ4SVFO3HNPOC",
+              "protocol": "soroswap",
+              "tokenIn": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+              "tokenOut": "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV",
+              "amountIn": "9990000",
+              "amountOut": "8955877",
+              "feeBps": 30
+            }
+          ],
+          "share": "9990000"
+        }
+      ]
+    }
+  },
+  "responseHeaders": {
+    "access-control-allow-origin": "*",
+    "content-length": "1125",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Tue, 06 Oct 2026 05:27:24 GMT",
+    "etag": "W/\"465-yKgv0Oq89touEHqQR1hDEUyECIs\"",
+    "server": "Google Frontend",
+    "x-cloud-trace-context": "fcef1f83cc6aa241c7f73e12c7a9bdeb",
+    "x-correlation-id": "f1bc54a6-747a-4289-aee5-9cbfd8d4fefa",
+    "x-powered-by": "Express",
+    "x-ratelimit-limit": "5",
+    "x-ratelimit-remaining": "4",
+    "x-ratelimit-reset": "1"
+  }
+}

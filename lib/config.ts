@@ -14,6 +14,30 @@ const NETWORK_PASSPHRASES = {
   futurenet: 'Test SDF Future Network ; October 2022',
 } as const;
 
+/**
+ * The USDC issuer and Horizon host are fixed per network. Pinning them here
+ * closes the #1104 attack surface: previously a single env change could
+ * redirect issuer checks and transaction submission on every path without
+ * failing any check, since both values were only checked for *format*
+ * (a valid-looking `G...` key, a valid-looking URL) rather than against the
+ * one correct value for the configured network.
+ *
+ * `futurenet` intentionally has no entry — there is no single canonical USDC
+ * issuer or Horizon host for it, so it is not checked.
+ */
+export const CANONICAL_NETWORK_VALUES: Readonly<
+  Partial<Record<Config['stellarNetwork'], { usdcIssuer: string; horizonHost: string }>>
+> = Object.freeze({
+  mainnet: Object.freeze({
+    usdcIssuer: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+    horizonHost: 'horizon.stellar.org',
+  }),
+  testnet: Object.freeze({
+    usdcIssuer: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
+    horizonHost: 'horizon-testnet.stellar.org',
+  }),
+});
+
 function validateEnv(): void {
   const requiredVars = [
     'NEXT_PUBLIC_STELLAR_NETWORK',
@@ -59,6 +83,34 @@ function validateEnv(): void {
       `❌ Invalid NEXT_PUBLIC_USDC_ISSUER: "${issuer}"\n` +
         `   Must be a valid Stellar public key (starts with 'G', 56 characters total)`
     );
+  }
+
+  // Pin the USDC issuer and Horizon host to the one correct value for the
+  // configured network (#1104 / #1333). `network` was validated above, so
+  // this indexes CANONICAL_NETWORK_VALUES with a known key.
+  const canonical = CANONICAL_NETWORK_VALUES[network as Config['stellarNetwork']];
+  if (canonical) {
+    if (issuer !== canonical.usdcIssuer) {
+      throw new Error(
+        `❌ Invalid NEXT_PUBLIC_USDC_ISSUER: "${issuer}"\n` +
+          `   Expected the canonical ${network} USDC issuer: "${canonical.usdcIssuer}"`
+      );
+    }
+
+    let horizon: URL;
+    try {
+      horizon = new URL(horizonUrl);
+    } catch {
+      // Already thrown above by the format check; unreachable in practice.
+      throw new Error(`❌ Invalid NEXT_PUBLIC_HORIZON_URL: "${horizonUrl}"`);
+    }
+
+    if (horizon.protocol !== 'https:' || horizon.hostname !== canonical.horizonHost) {
+      throw new Error(
+        `❌ Invalid NEXT_PUBLIC_HORIZON_URL: "${horizonUrl}"\n` +
+          `   Expected the canonical ${network} Horizon host: "https://${canonical.horizonHost}"`
+      );
+    }
   }
 }
 

@@ -1,0 +1,81 @@
+{
+  "capturedAt": "2026-10-06T05:27:17.989Z",
+  "capturedFrom": {
+    "method": "POST",
+    "url": "https://api.soroswap.finance/quote/build?network=mainnet"
+  },
+  "request": {
+    "quote": {
+      "assetIn": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+      "assetOut": "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV",
+      "tradeType": "EXACT_IN",
+      "amountIn": "10000000",
+      "amountOut": "8955877",
+      "otherAmountThreshold": "8911097",
+      "priceImpactPct": "0.00",
+      "platform": "router",
+      "routePlan": [
+        {
+          "swapInfo": {
+            "protocol": "soroswap",
+            "path": [
+              "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+              "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV"
+            ]
+          },
+          "percent": "100.00"
+        }
+      ],
+      "rawTrade": {
+        "amountIn": "9990000",
+        "amountOutMin": "8911097",
+        "distribution": [
+          {
+            "protocol_id": "soroswap",
+            "path": [
+              "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+              "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV"
+            ],
+            "parts": 10,
+            "is_exact_in": true,
+            "poolIds": ["CC7CDFY2VGDODJ7WPO3JIK2MXLOAXL4LRQCC43UJDBAIJ4SVFO3HNPOC"],
+            "hops": [
+              {
+                "poolId": "CC7CDFY2VGDODJ7WPO3JIK2MXLOAXL4LRQCC43UJDBAIJ4SVFO3HNPOC",
+                "protocol": "soroswap",
+                "tokenIn": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+                "tokenOut": "CDTKPWPLOURQA2SGTKTUQOWRCBZEORB4BWBOMJ3D3ZTQQSGE5F6JBQLV",
+                "amountIn": "9990000",
+                "amountOut": "8955877",
+                "feeBps": 30
+              }
+            ],
+            "share": "9990000"
+          }
+        ]
+      }
+    },
+    "from": "GA4TDFETT3TLR6EGQPP5LXBMYJGYKQ2ZYO2OJUOZ2SAMYNFHCL2PBW2U",
+    "to": "GA4TDFETT3TLR6EGQPP5LXBMYJGYKQ2ZYO2OJUOZ2SAMYNFHCL2PBW2U"
+  },
+  "status": 400,
+  "body": {
+    "message": "Account not found: GA4TDFETT3TLR6EGQPP5LXBMYJGYKQ2ZYO2OJUOZ2SAMYNFHCL2PBW2U",
+    "error": "Bad Request",
+    "statusCode": 400
+  },
+  "responseHeaders": {
+    "access-control-allow-origin": "*",
+    "content-length": "128",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Tue, 06 Oct 2026 05:27:26 GMT",
+    "etag": "W/\"80-lqpBt+fXVaqnKA1ZFWZvfYA0gLM\"",
+    "server": "Google Frontend",
+    "x-cloud-trace-context": "64111a7fbc315109ba57f3eb641e934e",
+    "x-correlation-id": "7fa5b213-a197-4dab-9f9f-bb874d100644",
+    "x-powered-by": "Express",
+    "x-ratelimit-limit": "5",
+    "x-ratelimit-remaining": "4",
+    "x-ratelimit-reset": "1"
+  }
+}

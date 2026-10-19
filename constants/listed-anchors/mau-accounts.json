@@ -1,0 +1,28 @@
+{
+  "id": "mau-accounts",
+  "name": "MAU Accounts DAO",
+  "kind": "issuer",
+  "domains": ["mauaccounts.net"],
+  "orgUrl": "https://mauaccounts.net",
+  "verifiedAt": "2026-09-23",
+  "assets": [
+    {
+      "code": "MAU",
+      "issuer": "GABL7PXSAV4W4L32PI6E46HLLSMTEUKRDUMAY2Q6JXITNV2QCWABRAOB",
+      "anchorAssetType": "other",
+      "anchorAsset": null
+    },
+    {
+      "code": "USDMAU",
+      "issuer": "GABL7PXSAV4W4L32PI6E46HLLSMTEUKRDUMAY2Q6JXITNV2QCWABRAOB",
+      "anchorAssetType": "fiat",
+      "anchorAsset": "USD"
+    },
+    {
+      "code": "PKOIN",
+      "issuer": "GABL7PXSAV4W4L32PI6E46HLLSMTEUKRDUMAY2Q6JXITNV2QCWABRAOB",
+      "anchorAssetType": "crypto",
+      "anchorAsset": "PKOIN"
+    }
+  ]
+}
